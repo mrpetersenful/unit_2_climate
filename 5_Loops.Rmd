@@ -1,0 +1,144 @@
+---
+title: "loops"
+author: "MSCI 599"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618) 
+```
+
+## for loops
+
+A `for` loop repeats a chunk of code many times, once for each element in a set of input. `for` loops provide a way to tell R, "Do this for every value of that." In R syntax, this looks like:
+
+```r
+for (value in that) {
+  this
+}
+```
+
+The `that` object should be a set of objects (often a vector of numbers or character strings). The for loop will run the code that appears between the braces once for each member of `that`. For example, the for loop below runs `print("one run")` once for each element in the vector `c(1,2,3,4)`:
+
+```{r}
+for (i in c(1:4)) {
+  print("one run")
+}
+```
+
+Each time the for loop ran is called an *iteration*. This loop ran 4 times, and therefore printed "one run" 4 times, because the *iterand* named `i` stepped through a vector with 4 elements. The code in your loop can access this value by calling the `i` object. For example:
+
+```{r}
+for (i in c(1:4)) {
+  print(i)
+}
+```
+
+`for` starts with the first element and then assigns a different element to the *iterand* `i` on each run of the for loop, until all of the elements have been assigned to `i`. The iterand can have any name, and the loop can step through any type of vector. For example, the for loop below will run `print(value)` four times and will print out one element of the vector `c("My", "second", "for", "loop")` each time:
+
+```{r}
+for (value in c("My", "second", "for", "loop")) {
+  print(value)
+}
+```
+
+On the first run, the for loop substituted `"My"` for `value` in `print(value)`. On the second run it substituted `"second"`, and so on until `for` had run `print(value)` once with every element in the set: 
+
+If you look at `value` after the loop runs, you will see that it still contains the value of the last element in the set:
+
+```{r}
+value
+```
+
+### Using the iterand as an index
+
+The most common usage of a for loop is to create some iterand (often named `i`) that will step through each element in a vector and act on the elements of that vector in some way with the iterand acting as an index inside the loop. Perhaps you want to do some mathematical calculation or apply some function to each element in a vector and save it in a new vector. For example, if you want to know the square of each value in your data, you could use a `for` loop this way:
+
+```{r}
+my_vector = c(1,3,5,2,4)
+n = length(my_vector)
+my_vector_squared = rep(NA,n) # initialize the results vector
+for (i in seq(n)) {
+  my_vector_squared[i] = my_vector[i]^2
+}
+my_vector_squared
+```
+
+It is important to note here that an empty vector with the correct length was made before starting the `for` loop and the iterand `i` was used to step through both our original data vector and our new results vector. Programers call this *initializing* an object, or creating an empty object to fill later. This is a much better (and faster) practice than appending a new result onto a results vector, and therefore changing the lengtt of the results vector with every iteration of the loop. 
+
+### Nested `for` loops
+
+Imagine you have a 2-D matrix and you want to perform an operation on every element. For example, perhaps you have a matrix of numbers with 2 rows and 3 columns, and you want to create a second matrix that contains the squared value of each element. You could use a nested for loop, where the first (outer) loop steps through every row in the matrix and the second (inner) loops steps through every column of the matrix. Using the nested loops you will be able to systematically interact with each element in the matrix one at a time.
+
+```{r}
+mat = matrix(c(2,0,8,3,5,-4), nrow=2, ncol=3)
+mat_squared = matrix(rep(NA,6), nrow=2, ncol=3) # This matrix will hold our results
+
+for(i in c(1:2)){
+  for(j in c(1:3)){
+    mat_squared[i,j] = mat[i,j]
+  }
+}
+
+```
+
+So we created the first matrix `mat` of some data, and we *initialized* a second matrix `mat_squared` that we later filled with the square of each value from the first matrix `mat`. In each iteration of the outer loop, the iterand `i` steps through each row of the data matrix. In each iteration of the inner loop, the iterand `j` steps through each column of the data matrix. If this nested loop seems confusing, it may help to see print out the iterands to see how eventually each element of the 2x3 matrix is accessed:
+
+```{r}
+for(i in c(1:2)){
+  for(j in c(1:3)){
+    print(paste("row i=",i," and column j=",j)) 
+  }
+}
+```
+
+As a side note, the function `paste()` joins several strings into one longer string. Programmers call this *concatenation*. When we look at the output, we can see that first the outer loop holds `i` at a value of 1 while the inner loop steps the iterand `j` through values of 1,2 and 3. Then the outer loop holds `i` at a value of 2 while the inner loop steps the iterand `j` through values of 1,2 and 3. So eventually all elements in the 2-row, 3-column matrix are accessed, one by one.
+
+Note: many functions and computations in R are *vectorized*, which means that they are written so that they will act independently on each element of the vector without going through the trouble of a `for` loop. The goal of squaring each element in the vector and matrix was just a simple example for demonstrating a `for` loop. However, since the squared calculation is vectorized, it is much more efficient to just do the following:
+
+```{r}
+my_vector^2
+mat^2
+```
+However, not all functions and calculations are vectorized, so a loop may be needed for some goals. For example, sometimes I want to make and save the same type of figure but with many different sets of data. I can use a for loop to step through a range of data sets, then build and save the figure inside the loop.
+
+## while Loops
+
+Another type of loop is the `while` loop, which reruns a chunk of code _while_ a certain condition remains `TRUE`. To create a `while` loop, follow `while` by a condition and a chunk of code, like this:
+
+```r
+while (condition) {
+  code
+}
+```
+
+`while` will rerun `condition`, which should be a logical test, at the start of each loop. If `condition` evaluates to `TRUE`, `while` will run the code between its braces. If `condition` evaluates to `FALSE`, `while` will finish the loop. 
+
+Why might `condition` change from `TRUE` to `FALSE`? Presumably because the code inside your loop has changed whether the condition is still `TRUE`. If the code has no relationship to the condition, a `while` loop will run until you stop it. So be careful. You can stop a `while` loop by hitting Escape or by clicking on the stop-sign icon at the top of the RStudio console pane. The icon will appear once the loop begins to run.
+
+You can use `while` loops to do things that take a varying number of iterations. In this example, we'll pretend to go fishing on a lake where there is a 50 pound catch limit. We won't know how many fish we can bring home until we've caught and weighed each fish that we land. To simulate landing a new fish with each iteration of our loop, I'll use a random number generator to supply the weight of the fish. The function `rnorm()` generates a random number with a normal distribution given the mean and sd that is supplied in the parameters.
+
+```{r}
+total_catch_lb = 0  # track the weight of fish I've caught
+n_fish = 0   # track the number of fish I've caught
+while (total_catch_lb < 50){
+  n_fish = n_fish+1  # I caught another fish!
+  new_fish_weight = rnorm(n=1, mean=2, sd=1) # randomly generate the weight of a fish
+  total_catch_lb = total_catch_lb + new_fish_weight
+}
+
+n_fish
+total_catch_lb
+```
+
+This code will probably result in our fisherman catching about 25 fish, since I set the mean weight of the fish in the lake at 2lb. Technically, our fisherman might need to throw the last fish back, since it put him over the weight limit (`total_catch_lb > 50`). 
+
+In practice, `while` loops are much less common than `for` loops in R:
+
+## Summary
+
+You can repeat tasks in R with `for`and `while` loops. To use `for`, give it a chunk of code to run and a set of objects to loop through. `for` will run the code chunk once for each object. If you wish to save the output of your loop, you can assign it to an object that exists outside of the loop.
+
+Repetition plays an important role in data science. It is the basis for simulation, as well as for estimates of variance and probability. Loops are not the only way to create repetition in R (consider `rep` for example), but they are one of the most popular ways.
+
+Unfortunately, loops in R can sometimes be slower than loops in other languages. As a result, R's loops get a bad rap. This reputation is not entirely deserved, but it does highlight an important issue. Speed is essential to data analysis. When your code runs fast, you can work with bigger data and do more to it before you run out of time or computational power. For this reason, we will learn many techniques for making repeated changes to our data that do not rely on loops.

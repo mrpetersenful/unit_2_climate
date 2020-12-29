@@ -1,0 +1,129 @@
+---
+title: "Global Temperature"
+author: "MSCI 599"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618) 
+```
+
+# Unit I: Climate Change Module
+### Examining global temperature trends
+#### Skills: Reading .txt files, plotting, saving figures, if statements, for loops, subsetting
+
+Each of the last years has consecutively set new records on global climate.  In this section we will analyze global mean temperature data.
+
+Data from: <http://climate.nasa.gov/vital-signs/global-temperature>
+```{r}
+#temp_anomaly = read.table("data/temp_anomaly_global_mean.txt", skip=5, sep="", header = FALSE)
+url = 'https://data.giss.nasa.gov/gistemp/graphs/graph_data/Global_Mean_Estimates_based_on_Land_and_Ocean_Data/graph.txt'
+temp_anomaly = read.delim(url, skip=5, sep="", header=FALSE, col.names = c("Year", "No_Smoothing", "Lowess_5"))
+class(temp_anomaly)
+head(temp_anomaly)
+dim(temp_anomaly)
+summary(temp_anomaly)
+plot(No_Smoothing ~ Year, data=temp_anomaly, ylab="Global mean temperature anomaly") + 
+  lines(No_Smoothing ~ Year, data=temp_anomaly) +
+  lines(Lowess_5 ~ Year, data=temp_anomaly, col="red") 
+```
+
+## Question 1:
+
+Describe the data set to the best of your ability given the documentation provided.  Describe what kind of column each data contains and what units it is measured in.  Then address our three key questions in understanding this data:
+
+- How are the measurements made? What is the associated measurement uncertainty?
+- What is the resolution of the data?
+- Are their missing values? How should they be handled?
+
+
+## Question 2:
+
+Construct the necessary R code to import and prepare for manipulation the following data set: <http://climate.nasa.gov/system/internal_resources/details/original/647_Global_Temperature_Data_File.txt>
+
+
+## Question 3:
+
+Plot the trend in global mean temperatures over time.  Describe what you see in the plot and how you interpret the patterns you observe.
+
+
+## Question 4: Evaluating the evidence for a "Pause" in warming?
+
+The [2013 IPCC Report](https://www.ipcc.ch/pdf/assessment-report/ar5/wg1/WG1AR5_SummaryVolume_FINAL.pdf) included a tentative observation of a "much smaller increasing trend" in global mean temperatures since 1998 than was observed previously.  This led to much discussion in the media about the existence of a "Pause" or "Hiatus" in global warming rates, as well as much research looking into where the extra heat could have gone.  (Examples discussing this question include articles in [The Guardian](http://www.theguardian.com/environment/2015/jun/04/global-warming-hasnt-paused-study-finds), [BBC News](http://www.bbc.com/news/science-environment-28870988), and [Wikipedia](https://en.wikipedia.org/wiki/Global_warming_hiatus)). 
+
+```{r}
+plot(No_Smoothing ~ Year, data=temp_anomaly, ylab="Global mean temperature anomaly") + 
+  lines(No_Smoothing ~ Year, data=temp_anomaly) +
+  lines(Lowess_5 ~ Year, data=temp_anomaly, col="red") +
+  abline(v=1998, lty="dashed") +
+  abline(v=2012, lty="dashed") # 2012 would be the "current state" when writing the 2013 IPCC report
+```
+This example should give us some caution in how we subset our data when we are looking at trends, and how difficult it is to determine whether we are in the middle of a new pattern. If you draw a line between the 1998 and 2012 data points (which is probably when the 2013 IPCC report was finalized), it seems like . Find the No_smoothing temperature values in those 2 years by double clicking the `temp_anomaly` object in your Global Environment panel in the upper right corner of RStudio. That will open up a new tab showing the data.frame. 
+
+```{r}
+plot(No_Smoothing ~ Year, data=temp_anomaly, ylab="Global mean temperature anomaly") + 
+  lines(No_Smoothing ~ Year, data=temp_anomaly) +
+  lines(Lowess_5 ~ Year, data=temp_anomaly, col="red") +
+  abline(v=1998, lty="dashed") +
+  abline(v=2012, lty="dashed") +
+  lines(c(0.61, 0.65)~c(1998, 2012), col="blue", lwd=2) # used the lwd parameter to thicken the line. See ?par
+```
+
+Now that we can see the 1998-2012 trend that was discussed in the 2013 IPCC report, it does seem like the rate of warming has slowed way down. However, now that we have the luxury of another decade of data, those dates seem completely cherry-picked and there is no observable slow-down to speak of.
+
+
+## Question 5: Rolling averages
+    
+- What is the meaning of "5 year average" vs "annual average"?
+    5 year average is calculated ay averaging data from that year along with the 2 years before and 2 years after.
+    i.e. the 5-year rolling average of 2005 temperature = the temperature mean from 2003-2007
+- Construct 5 year averages from the annual data.  Construct 10 & 20-year averages. 
+- Plot the different averages and describe what differences you see and why.  
+
+```{r}
+dim(temp_anomaly)
+dim(temp_anomaly)[1]
+seq(dim(temp_anomaly)[1])  # Note c(1:dim(temp_anomaly)[1]) produces same vector
+
+roll_avg = temp_anomaly
+roll_avg$year5 = NA
+roll_avg$year10 = NA
+roll_avg$year20 = NA
+for (i in seq(dim(temp_anomaly)[1]))
+{
+  # Calculate 5 year moving averages
+  if (i > 2 & i < (dim(temp_anomaly)[1]-2)){
+    roll_avg$year5[i] = mean(roll_avg[c((i-2):(i+2)),'No_Smoothing'])
+  }
+  # Calculate 10 year moving averages
+  if (i > 5 & i < (dim(temp_anomaly)[1]-4)){
+    roll_avg$year10[i] = mean(roll_avg[c((i-5):(i+4)),'No_Smoothing'])
+  }
+  # Calculate 20 year moving averages
+  if (i > 10 & i < (dim(temp_anomaly)[1]-9)){
+    roll_avg$year20[i] = mean(roll_avg[c((i-10):(i+9)),'No_Smoothing'])
+  }
+}
+
+head(roll_avg)
+
+plot(No_Smoothing ~ Year, data=roll_avg, ylab="Global mean temperature anomaly") + 
+  lines(No_Smoothing ~ Year, data=roll_avg) +
+  lines(year5 ~ Year, data=roll_avg, col="red") +
+  lines(year10 ~ Year, data=roll_avg, col="purple") +
+  lines(year20 ~ Year, data=roll_avg, col="blue") 
+
+```
+What are the advantages and disadvantages of using a larger rolling average window (i.e. the 20-year window)? 
+
+Now we will save the plot as a PDF file so we can put it in a publication, powerpoint, email it to our friends, etc.:
+
+```{r}
+pdf('figures/global_mean_temp.pdf', width=7, height=5)
+plot(No_Smoothing ~ Year, data=roll_avg, ylab="Global mean temperature anomaly") + 
+  lines(No_Smoothing ~ Year, data=roll_avg) +
+  lines(year5 ~ Year, data=roll_avg, col="red") +
+  lines(year10 ~ Year, data=roll_avg, col="purple") +
+  lines(year20 ~ Year, data=roll_avg, col="blue") 
+dev.off()
+```

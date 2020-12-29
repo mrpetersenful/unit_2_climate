@@ -1,0 +1,125 @@
+---
+title: "Defining Functions"
+author: "MSCI 599"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618) 
+```
+
+## Defining functions
+
+One of the best ways to improve your coding as a data scientist is to write functions. Functions allow you to automate common tasks in a more powerful and general way than copy-and-pasting. Writing a function has three big advantages over using copy-and-paste:
+
+1. You can give a function an evocative name that makes your code easier to understand.
+2. As requirements change, you only need to update code in one place, instead of many.
+3. You eliminate the chance of making incidental mistakes when you copy and paste (i.e. updating a variable name in one place, but not in another).
+
+You should consider writing a function whenever you’ve copied and pasted a block of code more than twice (i.e. you now have three copies of the same code). A simple example is computing averages. We can compute the average of a vector `x` using the `sum` and `length` functions: `sum(x)/length(x)`. Because we do this repeatedly, it is much more efficient to write a function that performs this operation. This particular operation is so common that someone already wrote the `mean` function and it is included in base R. However, you will encounter situations in which the function does not already exist, so R permits you to write your own. These functions that you write yourself are typically called **user-defined functions**. A simple version of a function that computes the average can be defined like this:
+
+```{r}
+avg = function(x){
+  s = sum(x)
+  n = length(x)
+  s/n
+}
+```
+
+Now `avg` is a function that computes the mean. The value returned by the function, by default, is the output from the last line in the function. In this case, when you call `avg()`, the value of `s/n` will be returned. Instead, you could explictly indicate the value that you want returned in the function, or return a value earlier than the final line by using `return()`.
+
+Now that we have made our function `avg()`, let's call it, and compare it to the output of the base-R function `mean()`:
+
+```{r}
+x = 1:100
+avg(x)
+mean(x)
+```
+
+Notice that variables defined inside a function are not saved in the workspace. So while we use `s` and `n` when we call `avg`, the values are created and changed only during the call. Here is an illustrative example:
+
+```{r}
+s = 3
+avg(1:10)
+s
+```
+
+Note how `s` is still `r s` after we call `avg`.
+
+In general, functions are objects, so we assign them to variable names with `=` or `<-`. The function `function()` tells R you are about to define a function. The general form of a function definition looks like this:
+
+```{r, eval=FALSE}
+my_function = function(VARIABLE_NAME){
+  perform operations on VARIABLE_NAME and calculate VALUE
+  VALUE
+}
+```
+
+## Function Parameters
+
+The functions you define can have multiple *parameters* or *arguments* as well as default values. For example, we can define a function that computes either the arithmetic or geometric average depending on a user defined variable. The arithmetic mean (most commonly used) is equal to the sum of *n* numbers divided by *n*. The geometric mean, however, is defined as the *n^th^* root of the product of *n* numbers. Let's modify our function so that either the arithmetic or the geometric mean can be calculated, and we'll allow the user to specify which type of mean they want by passing a parameter. 
+
+```{r}
+# Calculate arithmetic mean by default, or calculate geometric mean if the parameter 'arithmetic' is set to FALSE
+avg = function(x, arithmetic = TRUE){
+  n = length(x)
+  ifelse(arithmetic, sum(x)/n, prod(x)^(1/n))
+}
+```
+
+Note that I documented my function with a comment. Don't forget to do that! In this function, we assigned a default value to the `arithmetic` parameter, so when the function is called this parameter does not need to be specified. The default is set to calculate the arithmetic mean. However, if the parameter `arithmetic = FALSE` is passed to the function, the default will be overriden and the function will calculate the geometric mean. Note that the data variable `x` does not have a default since it is not followed by an `=` sign. This means that if someone tries to call the user-defined function `avg()` without specifying `x`, there will be an error.
+
+When you pass parameters in a function call, you can pass the parameter assignments in the exact order that they are listed in the function definition. In this case, the data that you want to take the mean of, `x`, is the first parameter, and the boolean variable that indicates whether you want the mean to be arithmetic is the second parameter. In many cases, instead of relying on listing your parameters in the exact order provided in the function definition, you can explicitly provide the name of the parameter and not worry about the order that you list the parameters. 
+
+Here are some examples:
+```{r, eval=FALSE}
+dat = c(1,3,5,7)
+avg(dat)
+avg(dat, TRUE) # Same answer as above since TRUE is the default
+avg(x=dat, arithmetic=TRUE)  # best coding practice bc each parameter is very explicit
+avg(x=dat, arithmetic=FALSE)  # reversed the order of the parameters without explicitly naming the parameters
+```
+
+These calls will throw an error or result in unexpected behavior:
+```{r, eval=FALSE}
+avg()  # didn't include the required parameter x
+avg(FALSE, dat)  # reversed the order of the parameters without explicitly naming the parameters
+```
+
+In the last example, since the parameters weren't explicitly named, the `avg()` function assumed that `x=FALSE` and attempted to take the average of `FALSE`, resulting in unexpected behavior. Good programmers who write functions to share with others will deliberately code checks and error reporting into the functions that they write. For example, at the beginning of the `avg()` function, we could check to see if `x` is a vector. If `x` isn't a vector, we can leave the function early with the `stop()` function and print out an error message to help guide the user:
+
+```{r}
+# Calculate arithmetic mean by default, or calculate geometric mean if the parameter 'arithmetic' is set to FALSE
+avg = function(x, arithmetic = TRUE){
+  if(!is.numeric(x)) {stop("Error: function failed. x must be a numeric")}
+  n = length(x)
+  ifelse(arithmetic, sum(x)/n, prod(x)^(1/n))
+}
+```
+We have now designed our function to throw an error and send out an error message to the user:
+```{r, eval=FALSE}
+avg(FALSE)
+```
+```
+>Error in avg(FALSE) : Error: function failed. x must be a numeric
+```
+
+## A note on naming functions
+
+The name of a function is important. Ideally, the name of your function will be short, but clearly evoke what the function does. That’s hard! But it’s better to be clear than short, as RStudio’s autocomplete makes it easy to type long names.
+
+Generally, function names should be verbs, and arguments should be nouns. There are some exceptions: nouns are ok if the function computes a very well known noun (i.e. mean() is better than compute_mean()), or accessing some property of an object (i.e. coef() is better than get_coefficients()). A good sign that a noun might be a better choice is if you’re using a very broad verb like “get”, “compute”, “calculate”, or “determine”. Use your best judgement and don’t be afraid to rename a function if you figure out a better name later.
+
+```{r, eval=FALSE}
+# Too short
+f()
+
+# Not a verb, or descriptive
+my_awesome_function()
+
+# Long, but clear
+impute_missing()
+collapse_years()
+```
+
+If your function name is composed of multiple words, I recommend using “snake_case”, where each lowercase word is separated by an underscore. camelCase is a popular alternative. It doesn’t really matter which one you pick, the important thing is to be consistent: pick one or the other and stick with it. (Admittedly, I'm not great at being consistent, but I'm working on it...).

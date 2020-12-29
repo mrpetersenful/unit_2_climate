@@ -1,0 +1,655 @@
+---
+title: "climate_datasets"
+author: "Erin Meyer-Gutbrod"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Unit I: Climate Change Module
+
+## Examining global atmospheric CO2 trends
+## Skills: Reading .txt files, plotting, conditional statements, subsetting
+
+- Example from <http://climate.nasa.gov/vital-signs/carbon-dioxide/>
+- Raw data from <ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt>
+
+Let's look at global patterns in atmospheric CO2 concentrations by examining the Keeling curve. The Keeling Curve shows seasonal and annual changes in atmospheric carbon dioxide (CO2) concentrations since 1958 at the Mauna Loa Observatory in Hawaii. Mauna Loa is an excellent site for atmospheric data collection due to the elevation and clean air quality. Since this site is in the middle of the Pacific ocean and far from cities, there will be less transient variation due to anthropogenic CO2 emissions. The graph, which was devised by American climate scientist Charles David Keeling of the Scripps Institution of Oceanography, charts the buildup of CO2 in the atmosphere. It is the longest uninterrupted instrumental record of atmospheric CO2 in the world, and it is commonly regarded as one of the best and most recognizable products of a long-term scientific study. 
+
+We can read in the CO2 data from NASA at their website: <http://climate.nasa.gov/vital-signs/carbon-dioxide/>. From here you can download a text file and open it to read the metadata at the top. We can also just download the data directly using their ftp:
+
+```{r}
+# co2 = read.table("data/co2_mm_mlo.txt", col.names = c("year", "month", "decimal_date", "monthly_average", "deseasonalized", "n_days", "st_dev_days", "monthly_mean_uncertainty"))
+url = 'ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt'
+co2 = read.table(url, col.names = c("year", "month", "decimal_date", "monthly_average", "deseasonalized", "n_days", "st_dev_days", "monthly_mean_uncertainty"))
+```
+We can use some built in functions to learn more about what we read in:
+```{r}
+class(co2) 
+head(co2)  # prints first 6 rows
+summary(co2) # gives type-specific summary stats for each column
+```
+Where does our time series start and end? What is the maximum CO2 level recorded at Mauna Loa?
+```{r}
+range(co2$decimal_date)
+max(co2$monthly_average)
+```
+
+Let's plot the monthly average atmospheric CO2 concentration (in ppm) to examine the Keeling curve:
+
+```{r}
+plot(monthly_average ~ decimal_date, type="l", data=co2) 
+```
+
+NASA was kind enough to inlcude the deseasonalized data. That means they removed the monthly cycle so that we could see the trend over time more easily. Let's plot the deasonalized data over the monthly average data. We'll make our plot prettier by specifying the axes titles and the main figure title.
+```{r}
+#Note '+' keeps lines together so RMarkdown doesn't close the plot before all elements are added
+plot(monthly_average ~ decimal_date, type="l", data=co2, ylab="CO2 ppm", xlab="Year", main="Keeling Curve") + 
+lines(y=co2$deseasonalized, x=co2$decimal_date, col="red")
+```
+
+This is pretty great, so let's save this gorgeous figure and brag about it to all of our friends.
+```{r}
+pdf('figures/keelingCurve.pdf', width=7, height=5)
+plot(monthly_average ~ decimal_date, type="l", data=co2, ylab="CO2 ppm", xlab="Year", main="Keeling Curve") + 
+lines(y=co2$deseasonalized, x=co2$decimal_date, col="red")
+dev.off()
+```
+
+### Which months are the CO2 values at the maximum? Minimum?  Why is this?
+Now let's take a closer look at the monthly cycle. We can subtract the deseasonalized CO2, i.e. the trend, to just look at the seasonal variation. We do this by making a new column in our data.frame using `$`
+
+```{r}
+co2$seasonal_cycle = co2$monthly_average - co2$deseasonalized #Calculate detrended co2 fluctuation
+head(co2)
+plot(seasonal_cycle ~ decimal_date, type="l", data=co2) 
+```
+
+We can subset the data to look at the most recent 5 years. This will allow us to see the monthly cycle better. First let's remind ourselves how to use brackets to subset a data.frame. When using brackets to select or subset a multidimensional frame, you need to make sure you provide information for each dimension. So an atomic vector only needs one number *n* in the brackets to select the *nth* element. 
+
+```{r}
+months = c("January", "February", "March", "April")
+months[3]
+```
+
+A 2D object like a matrix or a data frame requires information for both the rows and the columns you are interested in, like `my_data[x,y]` where x is the row(s) that you want and y is the column(s) that you want. You can insert nothing in the x or y position to indicate that you want everything along that dimension:
+
+```{r}
+co2[1,3]  #returns element in row 1, column 3
+co2[,2]   #returns all elements in row 2. Note: co2$month does the same thing
+co2[c(1:6),]   #returns the first 6 rows. Note: head(co2) does the same thing
+```
+
+We can use the which() function to subset by the values inside the data frame, rather than by the row and column numbers themselves. So to grab the last 5 years of data (plus a few months), we only want values of `co2$decimal_date` greater than 2015. We can use a conditional statement `>` to signal values *greater than* 2015:
+
+!!!!!!!!!!!!  Teach conditional statements and if / else chains
+
+
+```{r}
+
+co2_2016to2020 = co2[which(co2$decimal_date > 2015),]
+plot(seasonal_cycle ~ decimal_date, type="l", data=co2_2016to2020) 
+```
+
+It's a little hard to figure out which month is which on this plot. Let's make a table that shows the average CO2 anomaly for each month over the time series. We can calculate the monthly anomaly for January by subsetting only data where `month==` and then taking the mean of our `seasonal_cycle` variable. 
+
+
+```{r}
+jan_anomalies = co2[which(co2$month==1),'seasonal_cycle'] #Grab seasonal_cycle data only from the month of January
+mean(jan_anomalies) #throws error because mean() wants to operate on a vector, not a list / data.frame
+
+class(jan_anomalies)
+class(unlist(jan_anomalies))
+
+mean(unlist(jan_anomalies)) #Find mean January anomaly
+```
+
+Now let's calculate the average monthly anomaly for all 12 months. To do this, let's make a new data.frame that will hold our results. It should have two columns: one for month and one for the average anomaly for that month. Then we can calculate the average anomaly for each month, just like we did above, and insert in into the right spot in our data.frame:
+
+```{r}
+head(co2)
+co2_monthly_cycle = data.frame(month=c(1:12), detrended_monthly_cycle=NA) #Note how it automatically recycles NA to fill the column
+head(co2_monthly_cycle)
+
+co2_monthly_cycle$detrended_monthly_cycle[1] = mean(unlist(co2[which(co2$month==1),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[2] = mean(unlist(co2[which(co2$month==2),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[3] = mean(unlist(co2[which(co2$month==3),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[4] = mean(unlist(co2[which(co2$month==4),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[5] = mean(unlist(co2[which(co2$month==5),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[6] = mean(unlist(co2[which(co2$month==6),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[7] = mean(unlist(co2[which(co2$month==7),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[8] = mean(unlist(co2[which(co2$month==8),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[9] = mean(unlist(co2[which(co2$month==9),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[10] = mean(unlist(co2[which(co2$month==10),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[11] = mean(unlist(co2[which(co2$month==11),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[12] = mean(unlist(co2[which(co2$month==12),'seasonal_cycle']))
+
+plot(detrended_monthly_cycle ~ month, type="l", data=co2_monthly_cycle) 
+
+```
+Wow. wasn't that horrible? I don't know about you, but repeating that line of code 12 times and making just a small change on each line was demoralizing for me. Luckily you are going to learn tons of tricks to optimize your programming to avoid repetition, make your code more efficient and more readable. All in good time.
+
+So it looks like peak CO2 levels occur in May, and the lowest CO2 levels occur in October. There seems to be a consistent range of about 6 ppm CO2 in a given year. This is related to global autotrophic respiration rates. 
+
+The seasonal cycle reveals that CO2 concentrations decrease during periods corresponding to the spring and summer months in the Northern Hemisphere. This decline is explained by the rapid leafing of vegetation during the early spring and subsequent plant growth in the summer, when the influence of photosynthesis is greatest. (Photosynthesis removes CO2 from the air and converts it, along with water and other minerals, into oxygen and organic compounds that can be used for plant growth.) When spring arrives in the Northern Hemisphere, the portion of the planet that contains most of the land area and vegetation cover, the increased rate of photosynthesis outpaces the production of CO2, and a decrease in carbon dioxide concentrations can be observed in the curve. As photosynthetic rates slow and plant decay increases in the Northern Hemisphere during the autumn and winter months, atmospheric CO2 concentrations rise.
+
+What rolling average is used in computing the "trend" line?  How does the trend depend on the rolling average?
+
+
+------------------------
+
+# Exercise I: Temperature Data
+
+Each of the last years has consecutively set new records on global climate.  In this section we will analyze global mean temperature data.
+
+Data from: <http://climate.nasa.gov/vital-signs/global-temperature>
+```{r}
+#temp_anomaly = read.table("data/temp_anomaly_global_mean.txt", skip=5, sep="", header = FALSE)
+url = 'https://data.giss.nasa.gov/gistemp/graphs/graph_data/Global_Mean_Estimates_based_on_Land_and_Ocean_Data/graph.txt'
+temp_anomaly = read.delim(url, skip=5, sep="", header=FALSE, col.names = c("Year", "No_Smoothing", "Lowess_5"))
+class(temp_anomaly)
+head(temp_anomaly)
+dim(temp_anomaly)
+summary(temp_anomaly)
+plot(No_Smoothing ~ Year, data=temp_anomaly, ylab="Global mean temperature anomaly") + 
+  lines(No_Smoothing ~ Year, data=temp_anomaly) +
+  lines(Lowess_5 ~ Year, data=temp_anomaly, col="red") 
+```
+
+## Question 1:
+
+Describe the data set to the best of your ability given the documentation provided.  Describe what kind of column each data contains and what units it is measured in.  Then address our three key questions in understanding this data:
+
+- How are the measurements made? What is the associated measurement uncertainty?
+- What is the resolution of the data?
+- Are their missing values? How should they be handled?
+
+
+## Question 2:
+
+Construct the necessary R code to import and prepare for manipulation the following data set: <http://climate.nasa.gov/system/internal_resources/details/original/647_Global_Temperature_Data_File.txt>
+
+
+## Question 3:
+
+Plot the trend in global mean temperatures over time.  Describe what you see in the plot and how you interpret the patterns you observe.
+
+
+## Question 4: Evaluating the evidence for a "Pause" in warming?
+
+The [2013 IPCC Report](https://www.ipcc.ch/pdf/assessment-report/ar5/wg1/WG1AR5_SummaryVolume_FINAL.pdf) included a tentative observation of a "much smaller increasing trend" in global mean temperatures since 1998 than was observed previously.  This led to much discussion in the media about the existence of a "Pause" or "Hiatus" in global warming rates, as well as much research looking into where the extra heat could have gone.  (Examples discussing this question include articles in [The Guardian](http://www.theguardian.com/environment/2015/jun/04/global-warming-hasnt-paused-study-finds), [BBC News](http://www.bbc.com/news/science-environment-28870988), and [Wikipedia](https://en.wikipedia.org/wiki/Global_warming_hiatus)). 
+
+```{r}
+plot(No_Smoothing ~ Year, data=temp_anomaly, ylab="Global mean temperature anomaly") + 
+  lines(No_Smoothing ~ Year, data=temp_anomaly) +
+  lines(Lowess_5 ~ Year, data=temp_anomaly, col="red") +
+  abline(v=1998, lty="dashed") +
+  abline(v=2012, lty="dashed") # 2012 would be the "current state" when writing the 2013 IPCC report
+```
+This example should give us some caution in how we subset our data when we are looking at trends, and how difficult it is to determine whether we are in the middle of a new pattern. If you draw a line between the 1998 and 2012 data points (which is probably when the 2013 IPCC report was finalized), it seems like . Find the No_smoothing temperature values in those 2 years by double clicking the `temp_anomaly` object in your Global Environment panel in the upper right corner of RStudio. That will open up a new tab showing the data.frame. 
+
+```{r}
+plot(No_Smoothing ~ Year, data=temp_anomaly, ylab="Global mean temperature anomaly") + 
+  lines(No_Smoothing ~ Year, data=temp_anomaly) +
+  lines(Lowess_5 ~ Year, data=temp_anomaly, col="red") +
+  abline(v=1998, lty="dashed") +
+  abline(v=2012, lty="dashed") +
+  lines(c(0.61, 0.65)~c(1998, 2012), col="blue", lwd=2) # used the lwd parameter to thicken the line. See ?par
+```
+
+Now that we can see the 1998-2012 trend that was discussed in the 2013 IPCC report, it does seem like the rate of warming has slowed way down. However, now that we have the luxury of another decade of data, those dates seem completely cherry-picked and there is no observable slow-down to speak of.
+
+
+## Question 5: Rolling averages
+    
+- What is the meaning of "5 year average" vs "annual average"?
+    5 year average is calculated ay averaging data from that year along with the 2 years before and 2 years after.
+    i.e. the 5-year rolling average of 2005 temperature = the temperature mean from 2003-2007
+- Construct 5 year averages from the annual data.  Construct 10 & 20-year averages. 
+- Plot the different averages and describe what differences you see and why.  
+
+!!!! Teach for loops and if statements !!!!!!!!!
+
+```{r}
+dim(temp_anomaly)
+dim(temp_anomaly)[1]
+seq(dim(temp_anomaly)[1])  # Note c(1:dim(temp_anomaly)[1]) produces same vector
+
+roll_avg = temp_anomaly
+roll_avg$year5 = NA
+roll_avg$year10 = NA
+roll_avg$year20 = NA
+for (i in seq(dim(temp_anomaly)[1]))
+{
+  # Calculate 5 year moving averages
+  if (i > 2 & i < (dim(temp_anomaly)[1]-2)){
+    roll_avg$year5[i] = mean(roll_avg[c((i-2):(i+2)),'No_Smoothing'])
+  }
+  # Calculate 10 year moving averages
+  if (i > 5 & i < (dim(temp_anomaly)[1]-4)){
+    roll_avg$year10[i] = mean(roll_avg[c((i-5):(i+4)),'No_Smoothing'])
+  }
+  # Calculate 20 year moving averages
+  if (i > 10 & i < (dim(temp_anomaly)[1]-9)){
+    roll_avg$year20[i] = mean(roll_avg[c((i-10):(i+9)),'No_Smoothing'])
+  }
+}
+
+head(roll_avg)
+
+plot(No_Smoothing ~ Year, data=roll_avg, ylab="Global mean temperature anomaly") + 
+  lines(No_Smoothing ~ Year, data=roll_avg) +
+  lines(year5 ~ Year, data=roll_avg, col="red") +
+  lines(year10 ~ Year, data=roll_avg, col="purple") +
+  lines(year20 ~ Year, data=roll_avg, col="blue") 
+
+```
+What are the advantages and disadvantages of using a larger rolling average window (i.e. the 20-year window)? 
+
+Now we will save the plot as a PDF file so we can put it in a publication, powerpoint, email it to our friends, etc.:
+
+```{r}
+pdf('figures/global_mean_temp.pdf', width=7, height=5)
+plot(No_Smoothing ~ Year, data=roll_avg, ylab="Global mean temperature anomaly") + 
+  lines(No_Smoothing ~ Year, data=roll_avg) +
+  lines(year5 ~ Year, data=roll_avg, col="red") +
+  lines(year10 ~ Year, data=roll_avg, col="purple") +
+  lines(year20 ~ Year, data=roll_avg, col="blue") 
+dev.off()
+```
+
+# Exercise II: Melting Ice Sheets?
+
+## Skills: line plot, bar plot, confidence intervals, indexing, arithmetic
+
+- Data description: <http://climate.nasa.gov/vital-signs/land-ice/>
+
+## Question 1:
+
+- Describe the data set: what are the columns and units? Where do the numbers come from? 
+- What is the uncertainty in measurment? Resolution of the data? Interpretation of missing values?
+
+
+## Question 2:
+
+Construct the necessary R code to import this data set as a tidy `Table` object.
+
+## Question 3:
+
+Plot the data and describe the trends you observe.
+
+Go to the website and register yourself as a NASA Earthdata user. From there you can click on the data and download it. In your web browser, go to File -> Save page as -> and save it as a text file in your Rproj folder in a directory called `/data`.
+
+```{r}
+ant_ice_loss = read.table("data/antarctica_mass_200204_202008.txt", skip=31, sep="", header = FALSE, col.names = c("decimal_date", "mass_Gt", "sigma_Gt")) # Antarctica ice mass loss
+grn_ice_loss = read.table("data/greenland_mass_200204_202008.txt", skip=31, sep="", header = FALSE, col.names = c("decimal_date", "mass_Gt", "sigma_Gt")) # Greenland ice mass loss
+head(ant_ice_loss)
+head(grn_ice_loss)
+dim(ant_ice_loss)
+summary(ant_ice_loss)
+
+plot(mass_Gt ~ decimal_date, data=ant_ice_loss, ylab="Antarctica Mass Loss (Gt)", type='l') +
+lines(mass_Gt ~ decimal_date, data=grn_ice_loss,type='l', col='red') 
+```
+
+The plot window is sized to capture the range of the data originally called, which in this case was the Antarctica ice loss. When we added the Greendland mass loss data to the plot, it extended outside the bounds of the plot window. Let's manually set the limits on the y-axis so we can see the whole Greenland time series.
+
+```{r}
+plot(mass_Gt ~ decimal_date, data=ant_ice_loss, ylab="Antarctica Mass Loss (Gt)", type='l', ylim=range(grn_ice_loss$mass_Gt)) +
+lines(mass_Gt ~ decimal_date, data=grn_ice_loss, type='l', col='red') 
+```
+
+We know that there was a gap between NASA Grace satellite missions from 2017-06-10 to 2018-06-14. Rather than have our plot function draw a line straight across the gap, we can break up the line into segments. I'm going to force R's plot() functions to note the gap in the data by inserting an NA into the data.frame at the start of 2018. Then let's add in grey shaded polygons behind it to show the uncertainty
+
+```{r}
+#Create data.frame with an NA between the GRACE missions. Column names must match so it will merge with ant and grn data
+data_break = data.frame(decimal_date=2018.0, mass_Gt=NA, sigma_Gt=NA)
+data_break
+
+#Add NA data point to the Antarctica ice trends data frame
+ant_ice_loss_with_NA = rbind(ant_ice_loss, data_break) # Merge ant_ice_loss data frame with our NA point
+tail(ant_ice_loss_with_NA) # Our NA value in 2018 is now the last row of our data frame
+ant_ice_loss_with_NA = ant_ice_loss_with_NA[order(ant_ice_loss_with_NA$decimal_date),] # Reorder the data frame, sorting by date
+
+#Repeat with Greenland data.frame
+grn_ice_loss_with_NA = rbind(grn_ice_loss, data_break) # Merge ant_ice_loss data frame with our NA point
+grn_ice_loss_with_NA = grn_ice_loss_with_NA[order(grn_ice_loss_with_NA$decimal_date),]
+
+plot(mass_Gt ~ decimal_date, data=ant_ice_loss_with_NA, ylab="Antarctica Mass Loss (Gt)", type='l', ylim=range(grn_ice_loss_with_NA$mass_Gt, na.rm=TRUE)) +
+lines(mass_Gt ~ decimal_date, data=grn_ice_loss_with_NA, type='l', col='red') 
+```
+
+NASA provided sigma, or one standard deviation, uncertainty data, which represents 68% of uncertainty. 2 X sigma represents 95% uncertainty. Plot 95% confidence intervals around the data by adding and subtracting 2*sigma from the mass loss estimates
+
+```{r}
+head(ant_ice_loss_with_NA)
+pdf('figures/ice_mass_trends.pdf', width=7, height=5)
+plot(mass_Gt ~ decimal_date, data=ant_ice_loss_with_NA, ylab="Antarctica Mass Loss (Gt)", xlab="Year", type='l', ylim=range(grn_ice_loss_with_NA$mass_Gt, na.rm=TRUE)) +
+lines((mass_Gt+2*sigma_Gt) ~ decimal_date, data=ant_ice_loss_with_NA, type='l', lty='dashed') +
+lines((mass_Gt-2*sigma_Gt) ~ decimal_date, data=ant_ice_loss_with_NA, type='l', lty='dashed') +
+lines(mass_Gt ~ decimal_date, data=grn_ice_loss_with_NA, type='l', col='red') +
+lines((mass_Gt+2*sigma_Gt) ~ decimal_date, data=grn_ice_loss_with_NA, type='l', lty='dashed', col="red") +
+lines((mass_Gt-2*sigma_Gt) ~ decimal_date, data=grn_ice_loss_with_NA, type='l', lty='dashed', col="red") 
+dev.off()
+```
+Let's make a bar plot showing the difference in ice mass loss for Antarctica and Greenland:
+
+```{r}
+barplot(height=c(min(ant_ice_loss$mass_Gt)*(-1), min(grn_ice_loss$mass_Gt)*(-1)), names.arg=c("Antarctica","Greenland"), ylim=c(0,5000), ylab="Ice loss in Gt")
+```
+
+We can calculate the average annual ice loss for each ice sheet by dividing the change in ice lost from the beginning to the end of the time series by the total time that passed. Then we can display the ice loss rates in a bar graph:
+
+```{r}
+# Calculate ice loss rate (Gt / year) for Antarctica:
+n_rows_ant = dim(ant_ice_loss)[1]
+ant_loss_rate_Gt_per_yr = -1*(ant_ice_loss$mass_Gt[n_rows_ant] - ant_ice_loss$mass_Gt[1]) / (ant_ice_loss$decimal_date[n_rows_ant] - ant_ice_loss$decimal_date[1])
+
+# Calculate ice loss rate (Gt / year) for Greenland:
+n_rows_grn = dim(grn_ice_loss)[1]
+grn_loss_rate_Gt_per_yr = -1*(grn_ice_loss$mass_Gt[n_rows_grn] - grn_ice_loss$mass_Gt[1]) / (grn_ice_loss$decimal_date[n_rows_grn] - grn_ice_loss$decimal_date[1])
+
+# Plot ice loss rates in a bar graph:
+pdf('figures/ice_loss_rate.pdf', width=5, height=5)
+barplot(height=c(ant_loss_rate_Gt_per_yr, grn_loss_rate_Gt_per_yr), names.arg=c("Antarctica","Greenland"), ylab="Ice loss rate (Gt/year)")
+dev.off()
+
+```
+
+# Exercise III: Rising Sea Levels?
+
+## Skills: line plots, confidence interval plots, bar plots, subsetting, conditional statements
+
+- Data description: <http://climate.nasa.gov/vital-signs/sea-level/>
+- Raw data file: <http://climate.nasa.gov/system/internal_resources/details/original/121_Global_Sea_Level_Data_File.txt>
+
+
+## Question 1:
+
+- Describe the data set: what are the columns and units? 
+- Where do these data come from? 
+- What is the uncertainty in measurment? Resolution of the data? Interpretation of missing values?
+
+
+## Question 2:
+
+Construct the necessary R code to import this data set as a tidy `Table` object.
+
+## Question 3:
+
+Plot the data and describe the trends you observe.
+
+Go to the website and download the data, then save it as a .txt file in your Rproj folder in a directory called `/data`. (I tried to read in the data using the url, but that wasn't behaving for me.) I chose to read the .txt file in directly and I manually counted the number of header rows that I needed to skip. You could also remove the header (of course saving the information in a new .txt file in the directory called `metadata.txt`) and save the data as a new .txt file or as a .csv file. Your choice! Use the information in the header to figure out what the column names should be.
+
+```{r}
+gmsl_alt = read.table("data/global_mean_sea_level_199209_202008.txt", skip=48, sep="", header = FALSE,
+                       col.names=c("alt_type", 
+                                   "file_cycle", 
+                                   "decimal_date", 
+                                   "n_observations", 
+                                   "n_weighted_observations", 
+                                   "GMSL_rise_noGIA_mm", 
+                                   "GMSL_rise_noGIA_std_mm", 
+                                   "GMSL_rise_noGIA_60_day_smooth_mm", 
+                                   "GMSL_rise_withGIA_mm", 
+                                   "GMSL_rise_withGIA_std_mm", 
+                                   "GMSL_rise_withGIA_60_day_smooth_mm", 
+                                   "GMSL_rise_withGIA_detrend_60_day_smooth_mm"))
+head(gmsl_alt)
+```
+The NASA Global Mean Sea Level rise data show changes in the sea level variation (mm) with respect to the 20-year TOPEX/Jason collinear mean reference (1996-2016). Plot it:
+```{r}
+plot(GMSL_rise_withGIA_detrend_60_day_smooth_mm ~ decimal_date, data=gmsl_alt, ylab="Global Mean Sea Level Rise (mm)", type='l') 
+```
+
+## Download the longer global mean sea level rise data set from CSIRO using tide guage data. 
+
+- Data description: <https://research.csiro.au/slrwavescoast/sea-level/measurements-and-data/sea-level-data/>
+- Raw data file: <ftp://ftp.csiro.au/legresy/gmsl_files/CSIRO_Recons.csv>
+
+```{r}
+gmsl_tides = read.csv('ftp://ftp.csiro.au/legresy/gmsl_files/CSIRO_Recons.csv')
+head(gmsl_tides)
+plot(GMSL..mm. ~ Time, data=gmsl_tides, ylab="Global Mean Sea Level Rise (mm)", type='l') +
+lines((GMSL..mm.+2*GMSL.uncertainty..mm.) ~ Time, data=gmsl_tides, type='l', lty='dashed') +
+lines((GMSL..mm.-2*GMSL.uncertainty..mm.) ~ Time, data=gmsl_tides, type='l', lty='dashed') 
+```
+
+## Question:
+Why do you think the uncertainty is higher in the early portion of the time series than in the later portion of the time series?
+
+## Question:
+What is the rate of sea level rise in the first 20 years of the tide guage data set? What is the rate of sea level rise for the last (most recent) 20 years of the satellite altimetry data set? Use a bar plot to visualize the total global sea level rise in 20 year increments. Hint: 1880-2000 data should be drawn from tide guage measurements; 2000-2020 data will need to rely on satellite altimetry measurements 
+
+```{r}
+head(gmsl_tides)
+# Calculate the gmsl change in the tidal guage data from 1880 to 1900
+gmsl_mm_per_yr_1880to1900 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1900.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1880.5)]) / 20
+
+# Calculate the gmsl change in the tidal guage data from 1900 to 1920
+gmsl_mm_per_yr_1900to1920 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1920.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1900.5)]) / 20
+
+# Calculate the gmsl change in the tidal guage data from 1920 to 1940
+gmsl_mm_per_yr_1920to1940 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1940.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1920.5)]) / 20
+
+# Calculate the gmsl change in the tidal guage data from 1940 to 1960
+gmsl_mm_per_yr_1940to1960 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1960.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1940.5)]) / 20
+
+# Calculate the gmsl change in the tidal guage data from 1960 to 1980
+gmsl_mm_per_yr_1960to1980 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1980.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1960.5)]) / 20
+
+# Calculate the gmsl change in the tidal guage data from 1980 to 2000
+gmsl_mm_per_yr_1980to2000 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==2000.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1980.5)]) / 20
+
+# Calculate the gmsl change in the tidal guage data from 1980 to 2000
+gmsl_mm_per_yr_1980to2000 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==2000.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1980.5)]) / 20
+
+# Calculate the gmsl change in the tidal guage data from 1999 to 2009
+tail(gmsl_tides)
+gmsl_mm_per_yr_1999to2009 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==2009.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1999.5)]) / 10
+
+# Subset the altimetry gmsl data to the last 20 years and calculate gmsl change between first and last data points
+gmsl_alt_last20 = gmsl_alt[which(gmsl_alt$decimal_date>2000),]
+gmsl_mm_per_yr_2000to2020 = (gmsl_alt_last20$GMSL_rise_withGIA_detrend_60_day_smooth_mm[dim(gmsl_alt_last20)[1]] - gmsl_alt_last20$GMSL_rise_withGIA_detrend_60_day_smooth_mm[1]) / 20
+
+# Plot 20-year gmsl rates from 1880-2020 in a bar graph:
+pdf('figures/gmsl_mm_per_yr_20_year_increments.pdf', width=5, height=5)
+barplot(height=c(gmsl_mm_per_yr_1880to1900, gmsl_mm_per_yr_1900to1920, gmsl_mm_per_yr_1920to1940, gmsl_mm_per_yr_1940to1960, gmsl_mm_per_yr_1960to1980, gmsl_mm_per_yr_1980to2000, gmsl_mm_per_yr_2000to2020), names.arg=c("1880to1900","1900to1920","1920to1940","1940to1960","1960to1980","1980to2000","2000to2020"), ylab="Global Mean Sea Level Rise (mm/year)")
+dev.off()
+```
+
+# Exercise IV: Arctic Sea Ice?
+
+- <http://nsidc.org/data/G02135>
+- <ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/north/daily/data/N_seaice_extent_daily_v3.0.csv>
+
+
+## Question 1:
+
+- Describe the data set: what are the columns and units? 
+- Where do these data come from? 
+- What is the uncertainty in measurement? Resolution of the data? Interpretation of missing values?
+
+
+## Question 2:
+
+Construct the necessary R code to import this data set as a tidy `Table` object.
+
+## Question 3:
+
+Plot the data and describe the trends you observe.    
+```{r}
+# arctic_ice = read.csv("data/N_seaice_extent_daily_v3.0.csv", skip=2, header = FALSE, col.names = c("Year", "Month", "Day", "Extent", "Missing", "Source_Data"))
+url = 'ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/north/daily/data/N_seaice_extent_daily_v3.0.csv'
+arctic_ice = read.delim(url, skip=2, sep=",", header=FALSE, col.names = c("Year", "Month", "Day", "Extent", "Missing", "Source_Data"))
+head(arctic_ice)
+```
+Notice that unlike in previous data sets, the date information is split into three columns: year, month, day. This will make it harder to plot a time series since we can only plot one variable along the x axis. We could do the math to turn the month and day variables into decimal dates. Another, simpler, option is to take advantage of the `lubridate` package that was designed by other R users. Installing, loading and using functions from R packages can save you loads of time and dramatically increase the functionality of the R language. We will use many other packages throughout the course.
+
+First, we need to install the lubridate package from the CRAN library. You can do this in RStudio using the top menu: `Tools -> Install packages...`. Then type the name of the package you want (lubridate) into the text box, make sure the `Install Dependencies` box is checked and click `Install`. Or you can simply do it at your command line with the function `install.packages("lubridate")`. Once installed, you need to load the package functions into your environment with the `library()` function. Now that the `lubridate` package is loaded up, we can use the function `make_date()` to transform your year, month and date into a `date` type variable. Don't forget you can use the command `?make_date` to find out more about the function (or just search for the function in the Help tab of the lower left panel in RStudio).
+
+```{r}
+# install.packages("lubridate")
+library("lubridate")  # make_date()
+
+arctic_ice$date = make_date(arctic_ice$Year, arctic_ice$Month, arctic_ice$Day)
+plot(Extent ~ date, data=arctic_ice, ylab="Arctic sea ice extent (x10^6 km^2)", type='l') 
+```
+Use for loops to calculate the annual average Arctic sea ice extent and the 5-year-average Arctic sea ice extent. The annual average is the mean of all of the sea ice extent observations within a given year. We'll define the 5-year-average ice extent for a given year x as the mean of all sea ice exten observations within the year x as well as the 2 years prior and the 2 years after year x. For example, the 5-year-average sea ice extent for 2010 is the mean of all observations from Jan. 1 2008 to Dec. 31 2012.
+
+```{r}
+arctic_ice_annual = data.frame(Year=seq(min(arctic_ice$Year), max(arctic_ice$Year)), extent_annual_avg=NA, extent_5yr_avg=NA)
+head(arctic_ice_annual)
+# Hard-coding the years
+# calculate annual average:
+for (i in seq(dim(arctic_ice_annual)[1]))
+{
+  arctic_ice_annual$extent_annual_avg[i] = mean(arctic_ice[which(arctic_ice$Year == arctic_ice_annual$Year[i]),'Extent'])
+}
+
+# 5-year average:
+for (i in seq(3, dim(arctic_ice_annual)[1]-2))
+{
+  years = c((arctic_ice_annual$Year[i]-2):(arctic_ice_annual$Year[i]+2))
+  arctic_ice_annual$extent_5yr_avg[i] = mean(arctic_ice[which(arctic_ice$Year %in% years),'Extent'])
+}
+
+pdf('figures/arctic_ice_extent.pdf', width=7, height=5)
+plot(extent_annual_avg ~ Year, data=arctic_ice_annual, col="red", type="l") +
+  lines(extent_5yr_avg ~ Year, data=arctic_ice_annual, col="blue", type="l")
+dev.off()
+```
+
+As you'd expect, the 5-year-average really smooths out some of that year-to-year variability and makes it a bit easier to observe the overall trend through time. 
+
+If we want to plot the annual and 5-year averages on the same plot as the original observations, we'll have to change our `Year` variable into a `date`-type variable that will plot nicely along the dates in the original observation dataset:
+
+``` {r}
+#To plot the annual and 5-year averages on the same plot as the original observations:
+arctic_ice_annual$date = as.Date(paste(arctic_ice_annual$Year, 1, 1, sep = "-"))
+plot(Extent ~ date, data=arctic_ice, ylab="Arctic sea ice extent (x10^6 km^2)", type='l') +
+  lines(extent_annual_avg ~ date, data=arctic_ice_annual, col="red") +
+  lines(extent_5yr_avg ~ date, data=arctic_ice_annual, col="blue")
+```
+
+Now, let's calculate the observed rate of change in annually averaged ice extent across the time period by subtracting the first average Arctic ice extent area from the most recent average Arctic ice extent area, and dividing by the number of years of observation:
+
+```{r}
+ice_loss_million_km2 = (arctic_ice_annual$extent_annual_avg[dim(arctic_ice_annual)[1]] - arctic_ice_annual$extent_annual_avg[1]) / (max(arctic_ice_annual$Year) - min(arctic_ice_annual$Year))
+```
+So from 1978 to 2020, we have lost 50,000 km^2 of ice extent in the Arctic. That's about the size of Vermont and New Hampshire combined!
+
+# Exercise V: Longer term trends in CO2 Records
+
+
+The data we analyzed in the unit introduction included CO2 records dating back only as far as the measurements at the Manua Loa observatory.  To put these values into geological perspective requires looking back much farther than humans have been monitoring atmosopheric CO2 levels.  To do this, we need another approach.
+
+
+[Ice core data](http://cdiac.ornl.gov/trends/co2/ice_core_co2.html):
+
+Vostok Core, back to 400,000 yrs before present day 
+
+- Description of data set: <http://cdiac.esd.ornl.gov/trends/co2/vostok.html>
+- Data source: <https://cdiac.ess-dive.lbl.gov/ftp/trends/co2/vostok.icecore.co2>
+
+## Questions / Tasks:
+
+- Describe the data set: what are the columns and units? Where do the numbers come from? 
+- What is the uncertainty in measurment? Resolution of the data? Interpretation of missing values?
+- Read in and prepare data for analysis.
+- Reverse the ordering to create a chronological record.  
+- Plot data
+- Consider various smoothing windowed averages of the data. 
+- Join this series to Mauna Loa data
+- Plot joined data
+- Describe your conclusions
+
+
+```{r}
+# ice_core = read.table("data/vostok.icecore.co2.txt", skip=21, sep="", header = FALSE, col.names = c("Deph_m", "IceAge_yrBP", "AirAge_yrBP", "co2_ppmv"))
+url = 'https://cdiac.ess-dive.lbl.gov/ftp/trends/co2/vostok.icecore.co2'
+ice_core = read.delim(url, skip=21, sep="", header=FALSE, col.names = c("Depth_m", "IceAge_yrBP", "AirAge_yrBP", "co2_ppmv"))
+head(ice_core)
+```
+
+The age of the ice core samples are provided as the age of the ice, and the mean age of the air pocket within the ice. Ages are provided in years BP, which means years prior to 1950. We can transform the age variable to reverse the order and create a chronological record:
+
+```{r}
+ice_core$year = 1950 - ice_core$AirAge_yrBP
+tail(ice_core)
+plot(co2_ppmv~year, data=ice_core, ylab="CO2 (ppmv)", xlab="year (relative to 1950)", type='l', main="Vostok ice core") 
+```
+
+
+```{r}
+# Calculate and plot moving averages
+ice_core$co2_ppmv_10kyr_avg = NA
+ice_core$co2_ppmv_50kyr_avg = NA
+for (i in seq(dim(ice_core)[1]))
+{
+  year_i = ice_core$year[i]
+  
+  # Calculate 10,000 year ice core moving average
+  ice_core_10k_window = ice_core[which(ice_core$year > year_i-5000 & (ice_core$year < year_i+5000)),]
+  ice_core$co2_ppmv_10kyr_avg[i] = mean(ice_core_10k_window$co2_ppmv)
+  
+  # Calculate 50,000 year ice core moving average
+  ice_core_50k_window = ice_core[which(ice_core$year > year_i-25000 & (ice_core$year < year_i+25000)),]
+  ice_core$co2_ppmv_50kyr_avg[i] = mean(ice_core_50k_window$co2_ppmv)
+}
+
+pdf('figures/vostok_ice_core.pdf', width=7, height=5)
+plot(co2_ppmv~year, data=ice_core, ylab="CO2 (ppmv)", xlab="year (relative to 1950)", type='l', main="Vostok ice core") +
+  lines(co2_ppmv_10kyr_avg~year, data=ice_core, col="red") +
+  lines(co2_ppmv_50kyr_avg~year, data=ice_core, col="blue")
+dev.off()
+# Find CO2 range and highest CO2 value in Vostok ice core
+range(ice_core$co2_ppmv)
+ice_core[which(ice_core$co2_ppmv==max(ice_core$co2_ppmv)), ]
+```
+
+
+Over the last 400,000 years atmospheric CO2 levels as indicated by the ice-core data have fluctuated between 180 and 300 parts per million by volume (ppmv), corresponding with conditions of glacial and interglacial periods. The highest pre-industrial value recorded in 800,000 years of ice-core record was 298.7 ppmv, in the Vostok core, around 325,000 years ago. 
+
+Now we'll bring in modern, post-industrial data collected at Mauna Loa to see how our atmospheric CO2 records compare with those derived from Antarctic ice core data:
+
+```{r}
+url = 'ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt'
+loa = read.table(url, col.names = c("year", "month", "decimal_date", "monthly_average", "deseasonalized", "n_days", "st_dev_days", "monthly_mean_uncertainty"))
+head(loa)
+```
+Calculate the annual average of the deseasonalized CO2 readings from Mauna Loa and plot them:
+```{r}
+loa$annual_avg = NA
+for (i in seq(dim(loa)[1]))
+{
+  loa_year_i = loa[which(loa$year == loa$year[i]),]
+  loa$annual_avg[i] = mean(loa_year_i$deseasonalized)
+}
+
+plot(monthly_average ~ decimal_date, data = loa, type="l") +
+  lines(annual_avg ~ year, data = loa, col="red")
+```
+
+This wasn't the most efficient way to solve this problem since we are re-calculating the same annual average for every month of a given year. That is unnecessarily repeating calculations. However, this was a simple way to code it given the tools that we have learned. Soon we will learn more efficient ways to make calculations on groups of data.
+
+Now let's create a new dataset that merges the Vostok core data with the moder Mauna Loa data. I'm going to use the function `unique()` to remove repetitive rows of the annual average data in the Mauna Loa set. 
+
+```{r}
+head(loa)  # Note repetitive annual_avg data 
+loa_annual = data.frame(year=loa$year, co2_ppmv=loa$annual_avg)
+loa_annual = unique(loa_annual)
+merged_co2 = rbind(ice_core[,c("year","co2_ppmv")],loa_annual) # Note: variable names must match for merge to be successful
+merged_co2 = merged_co2[order(merged_co2$year),]  # reorder the data by year
+
+pdf('figures/co2_400kBP_to_present.pdf', width=7, height=5)
+plot(co2_ppmv ~ year, data = merged_co2, type="l") 
+dev.off()
+
+range(merged_co2$co2_ppmv)
+```
+
+Atmospheric CO2 levels have increased markedly in industrial times. The pre-industrial atmospheric CO2 maximum estimated from the Vostok ice core was 298.7 ppmv, around 325,000 years ago. Today the atmospheric CO2 measures 413 ppm. 
+

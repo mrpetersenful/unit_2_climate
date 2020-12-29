@@ -1,0 +1,132 @@
+---
+title: "CO2 MaunaLoa"
+author: "MSCI 599"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618) 
+```
+
+# Unit I: Climate Change Module
+### Examining global atmospheric CO2 trends
+#### Skills: Reading .txt files, plotting, saving figures, conditional statements, subsetting
+
+- Example from <http://climate.nasa.gov/vital-signs/carbon-dioxide/>
+- Raw data from <ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt>
+
+Let's look at global patterns in atmospheric CO2 concentrations by examining the Keeling curve. The Keeling Curve shows seasonal and annual changes in atmospheric carbon dioxide (CO2) concentrations since 1958 at the Mauna Loa Observatory in Hawaii. Mauna Loa is an excellent site for atmospheric data collection due to the elevation and clean air quality. Since this site is in the middle of the Pacific ocean and far from cities, there will be less transient variation due to anthropogenic CO2 emissions. The graph, which was devised by American climate scientist Charles David Keeling of the Scripps Institution of Oceanography, charts the buildup of CO2 in the atmosphere. It is the longest uninterrupted instrumental record of atmospheric CO2 in the world, and it is commonly regarded as one of the best and most recognizable products of a long-term scientific study. 
+
+We can read in the CO2 data from NASA at their website: <http://climate.nasa.gov/vital-signs/carbon-dioxide/>. From here you can download a text file and open it to read the metadata at the top. We can also just download the data directly using their ftp:
+
+```{r}
+# co2 = read.table("data/co2_mm_mlo.txt", col.names = c("year", "month", "decimal_date", "monthly_average", "deseasonalized", "n_days", "st_dev_days", "monthly_mean_uncertainty"))
+url = 'ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt'
+co2 = read.table(url, col.names = c("year", "month", "decimal_date", "monthly_average", "deseasonalized", "n_days", "st_dev_days", "monthly_mean_uncertainty"))
+```
+We can use some built in functions to learn more about what we read in:
+```{r}
+class(co2) 
+head(co2)  # prints first 6 rows
+summary(co2) # gives type-specific summary stats for each column
+```
+Where does our time series start and end? What is the maximum CO2 level recorded at Mauna Loa?
+```{r}
+range(co2$decimal_date)
+max(co2$monthly_average)
+```
+
+Let's plot the monthly average atmospheric CO2 concentration (in ppm) to examine the Keeling curve:
+
+```{r}
+plot(monthly_average ~ decimal_date, type="l", data=co2) 
+```
+
+NASA was kind enough to inlcude the deseasonalized data. That means they removed the monthly cycle so that we could see the trend over time more easily. Let's plot the deasonalized data over the monthly average data. We'll make our plot prettier by specifying the axes titles and the main figure title.
+```{r}
+#Note '+' keeps lines together so RMarkdown doesn't close the plot before all elements are added
+plot(monthly_average ~ decimal_date, type="l", data=co2, ylab="CO2 ppm", xlab="Year", main="Keeling Curve") + 
+lines(y=co2$deseasonalized, x=co2$decimal_date, col="red")
+```
+
+This is pretty great, so let's save this gorgeous figure and brag about it to all of our friends.
+```{r}
+pdf('figures/keelingCurve.pdf', width=7, height=5)
+plot(monthly_average ~ decimal_date, type="l", data=co2, ylab="CO2 ppm", xlab="Year", main="Keeling Curve") + 
+lines(y=co2$deseasonalized, x=co2$decimal_date, col="red")
+dev.off()
+```
+
+### Which months are the CO2 values at the maximum? Minimum?  Why is this?
+Now let's take a closer look at the monthly cycle. We can subtract the deseasonalized CO2, i.e. the trend, to just look at the seasonal variation. We do this by making a new column in our data.frame using `$`
+
+```{r}
+co2$seasonal_cycle = co2$monthly_average - co2$deseasonalized #Calculate detrended co2 fluctuation
+head(co2)
+plot(seasonal_cycle ~ decimal_date, type="l", data=co2) 
+```
+
+We can subset the data to look at the most recent 5 years. This will allow us to see the monthly cycle better. First let's remind ourselves how to use brackets to subset a data.frame. When using brackets to select or subset a multidimensional frame, you need to make sure you provide information for each dimension. So an atomic vector only needs one number *n* in the brackets to select the *nth* element. 
+
+```{r}
+months = c("January", "February", "March", "April")
+months[3]
+```
+
+A 2D object like a matrix or a data frame requires information for both the rows and the columns you are interested in, like `my_data[x,y]` where x is the row(s) that you want and y is the column(s) that you want. You can insert nothing in the x or y position to indicate that you want everything along that dimension:
+
+```{r}
+co2[1,3]  #returns element in row 1, column 3
+co2[,2]   #returns all elements in row 2. Note: co2$month does the same thing
+co2[c(1:6),]   #returns the first 6 rows. Note: head(co2) does the same thing
+```
+
+We can use the which() function to subset by the values inside the data frame, rather than by the row and column numbers themselves. So to grab the last 5 years of data (plus a few months), we only want values of `co2$decimal_date` greater than 2015. We can use a conditional statement `>` to signal values *greater than* 2015:
+
+```{r}
+
+co2_2016to2020 = co2[which(co2$decimal_date > 2015),]
+plot(seasonal_cycle ~ decimal_date, type="l", data=co2_2016to2020) 
+```
+
+It's a little hard to figure out which month is which on this plot. Let's make a table that shows the average CO2 anomaly for each month over the time series. We can calculate the monthly anomaly for January by subsetting only data where `month==` and then taking the mean of our `seasonal_cycle` variable. 
+
+```{r}
+jan_anomalies = co2[which(co2$month==1),'seasonal_cycle'] #Grab seasonal_cycle data only from the month of January
+mean(jan_anomalies) #throws error because mean() wants to operate on a vector, not a list / data.frame
+
+class(jan_anomalies)
+class(unlist(jan_anomalies))
+
+mean(unlist(jan_anomalies)) #Find mean January anomaly
+```
+
+Now let's calculate the average monthly anomaly for all 12 months. To do this, let's make a new data.frame that will hold our results. It should have two columns: one for month and one for the average anomaly for that month. Then we can calculate the average anomaly for each month, just like we did above, and insert in into the right spot in our data.frame:
+
+```{r}
+head(co2)
+co2_monthly_cycle = data.frame(month=c(1:12), detrended_monthly_cycle=NA) #Note how it automatically recycles NA to fill the column
+head(co2_monthly_cycle)
+
+co2_monthly_cycle$detrended_monthly_cycle[1] = mean(unlist(co2[which(co2$month==1),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[2] = mean(unlist(co2[which(co2$month==2),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[3] = mean(unlist(co2[which(co2$month==3),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[4] = mean(unlist(co2[which(co2$month==4),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[5] = mean(unlist(co2[which(co2$month==5),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[6] = mean(unlist(co2[which(co2$month==6),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[7] = mean(unlist(co2[which(co2$month==7),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[8] = mean(unlist(co2[which(co2$month==8),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[9] = mean(unlist(co2[which(co2$month==9),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[10] = mean(unlist(co2[which(co2$month==10),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[11] = mean(unlist(co2[which(co2$month==11),'seasonal_cycle']))
+co2_monthly_cycle$detrended_monthly_cycle[12] = mean(unlist(co2[which(co2$month==12),'seasonal_cycle']))
+
+plot(detrended_monthly_cycle ~ month, type="l", data=co2_monthly_cycle) 
+
+```
+Wow. wasn't that horrible? I don't know about you, but repeating that line of code 12 times and making just a small change on each line was demoralizing for me. Luckily you are going to learn tons of tricks to optimize your programming to avoid repetition, make your code more efficient and more readable. All in good time.
+
+So it looks like peak CO2 levels occur in May, and the lowest CO2 levels occur in October. There seems to be a consistent range of about 6 ppm CO2 in a given year. This is related to global autotrophic respiration rates. 
+
+The seasonal cycle reveals that CO2 concentrations decrease during periods corresponding to the spring and summer months in the Northern Hemisphere. This decline is explained by the rapid leafing of vegetation during the early spring and subsequent plant growth in the summer, when the influence of photosynthesis is greatest. (Photosynthesis removes CO2 from the air and converts it, along with water and other minerals, into oxygen and organic compounds that can be used for plant growth.) When spring arrives in the Northern Hemisphere, the portion of the planet that contains most of the land area and vegetation cover, the increased rate of photosynthesis outpaces the production of CO2, and a decrease in carbon dioxide concentrations can be observed in the curve. As photosynthetic rates slow and plant decay increases in the Northern Hemisphere during the autumn and winter months, atmospheric CO2 concentrations rise.
+

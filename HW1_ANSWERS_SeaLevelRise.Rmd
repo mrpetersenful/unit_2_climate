@@ -1,0 +1,100 @@
+---
+title: "Sea Level Rise"
+author: "MSCI 599"
+output: html_document
+---
+
+# Unit I: Climate Change Module
+### Exercise III: Rising Sea Levels?
+#### Skills: line plots, confidence interval plots, bar plots, subsetting, conditional statements
+
+- Data description: <http://climate.nasa.gov/vital-signs/sea-level/>
+- Raw data file: <http://climate.nasa.gov/system/internal_resources/details/original/121_Global_Sea_Level_Data_File.txt>
+
+
+## Agenda:
+
+- Describe the data set: what are the columns and units? 
+- Where do these data come from? 
+- What is the uncertainty in measurment? Resolution of the data? Interpretation of missing values?
+- Construct the necessary R code to import this data set as a tidy `data.frame` object.
+- Plot the data and describe the trends you observe.
+
+Go to the website and download the data, then save it as a .txt file in your Rproj folder in a directory called `/data`. (I tried to read in the data using the url, but that wasn't behaving for me.) I chose to read the .txt file in directly and I manually counted the number of header rows that I needed to skip. You could also remove the header (of course saving the information in a new .txt file in the directory called `metadata.txt`) and save the data as a new .txt file or as a .csv file. Your choice! Use the information in the header to figure out what the column names should be.
+
+```{r}
+gmsl_alt = read.table("data/global_mean_sea_level_199209_202008.txt", skip=48, sep="", header = FALSE,
+                       col.names=c("alt_type", 
+                                   "file_cycle", 
+                                   "decimal_date", 
+                                   "n_observations", 
+                                   "n_weighted_observations", 
+                                   "GMSL_rise_noGIA_mm", 
+                                   "GMSL_rise_noGIA_std_mm", 
+                                   "GMSL_rise_noGIA_60_day_smooth_mm", 
+                                   "GMSL_rise_withGIA_mm", 
+                                   "GMSL_rise_withGIA_std_mm", 
+                                   "GMSL_rise_withGIA_60_day_smooth_mm", 
+                                   "GMSL_rise_withGIA_detrend_60_day_smooth_mm"))
+head(gmsl_alt)
+```
+The NASA Global Mean Sea Level rise data show changes in the sea level variation (mm) with respect to the 20-year TOPEX/Jason collinear mean reference (1996-2016). Plot it:
+```{r}
+plot(GMSL_rise_withGIA_detrend_60_day_smooth_mm ~ decimal_date, data=gmsl_alt, ylab="Global Mean Sea Level Rise (mm)", type='l') 
+```
+
+## Download the longer global mean sea level rise data set from CSIRO using tide guage data. 
+
+- Data description: <https://research.csiro.au/slrwavescoast/sea-level/measurements-and-data/sea-level-data/>
+- Raw data file: <ftp://ftp.csiro.au/legresy/gmsl_files/CSIRO_Recons.csv>
+
+```{r}
+gmsl_tides = read.csv('ftp://ftp.csiro.au/legresy/gmsl_files/CSIRO_Recons.csv')
+head(gmsl_tides)
+plot(GMSL..mm. ~ Time, data=gmsl_tides, ylab="Global Mean Sea Level Rise (mm)", type='l') +
+lines((GMSL..mm.+2*GMSL.uncertainty..mm.) ~ Time, data=gmsl_tides, type='l', lty='dashed') +
+lines((GMSL..mm.-2*GMSL.uncertainty..mm.) ~ Time, data=gmsl_tides, type='l', lty='dashed') 
+```
+
+## Question:
+Why do you think the uncertainty is higher in the early portion of the time series than in the later portion of the time series?
+
+## Question:
+What is the rate of sea level rise in the first 20 years of the tide guage data set? What is the rate of sea level rise for the last (most recent) 20 years of the satellite altimetry data set? Use a bar plot to visualize the total global sea level rise in 20 year increments. Hint: 1880-2000 data should be drawn from tide guage measurements; 2000-2020 data will need to rely on satellite altimetry measurements 
+
+```{r}
+head(gmsl_tides)
+# Calculate the gmsl change in the tidal guage data from 1880 to 1900
+gmsl_mm_per_yr_1880to1900 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1900.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1880.5)]) / 20
+
+# Calculate the gmsl change in the tidal guage data from 1900 to 1920
+gmsl_mm_per_yr_1900to1920 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1920.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1900.5)]) / 20
+
+# Calculate the gmsl change in the tidal guage data from 1920 to 1940
+gmsl_mm_per_yr_1920to1940 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1940.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1920.5)]) / 20
+
+# Calculate the gmsl change in the tidal guage data from 1940 to 1960
+gmsl_mm_per_yr_1940to1960 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1960.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1940.5)]) / 20
+
+# Calculate the gmsl change in the tidal guage data from 1960 to 1980
+gmsl_mm_per_yr_1960to1980 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1980.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1960.5)]) / 20
+
+# Calculate the gmsl change in the tidal guage data from 1980 to 2000
+gmsl_mm_per_yr_1980to2000 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==2000.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1980.5)]) / 20
+
+# Calculate the gmsl change in the tidal guage data from 1980 to 2000
+gmsl_mm_per_yr_1980to2000 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==2000.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1980.5)]) / 20
+
+# Calculate the gmsl change in the tidal guage data from 1999 to 2009
+tail(gmsl_tides)
+gmsl_mm_per_yr_1999to2009 = (gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==2009.5)] - gmsl_tides$GMSL..mm.[which(gmsl_tides$Time==1999.5)]) / 10
+
+# Subset the altimetry gmsl data to the last 20 years and calculate gmsl change between first and last data points
+gmsl_alt_last20 = gmsl_alt[which(gmsl_alt$decimal_date>2000),]
+gmsl_mm_per_yr_2000to2020 = (gmsl_alt_last20$GMSL_rise_withGIA_detrend_60_day_smooth_mm[dim(gmsl_alt_last20)[1]] - gmsl_alt_last20$GMSL_rise_withGIA_detrend_60_day_smooth_mm[1]) / 20
+
+# Plot 20-year gmsl rates from 1880-2020 in a bar graph:
+pdf('figures/gmsl_mm_per_yr_20_year_increments.pdf', width=5, height=5)
+barplot(height=c(gmsl_mm_per_yr_1880to1900, gmsl_mm_per_yr_1900to1920, gmsl_mm_per_yr_1920to1940, gmsl_mm_per_yr_1940to1960, gmsl_mm_per_yr_1960to1980, gmsl_mm_per_yr_1980to2000, gmsl_mm_per_yr_2000to2020), names.arg=c("1880to1900","1900to1920","1920to1940","1940to1960","1960to1980","1980to2000","2000to2020"), ylab="Global Mean Sea Level Rise (mm/year)")
+dev.off()
+```

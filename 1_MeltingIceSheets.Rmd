@@ -1,0 +1,119 @@
+---
+title: "Melting Ice Sheets"
+author: "MSCI 599"
+output: html_document
+self_contained: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618) 
+```
+
+# Unit I: Climate Change Module
+### Exercise II: Melting Ice Sheets
+#### Skills: read data, line plot, bar plot, saving plots, merging, confidence intervals, indexing, arithmetic
+
+- Data description: <http://climate.nasa.gov/vital-signs/land-ice/>
+
+## Agenda:
+
+- Describe the data set: what are the columns and units? Where do the numbers come from? 
+- What is the uncertainty in measurment? Resolution of the data? Interpretation of missing values?
+- Construct the necessary R code to import this data set as a `data.frame` object.
+- Plot the data and describe the trends you observe.
+
+Go to the website and register yourself as a NASA Earthdata user. From there you can click on the data and download it. In your web browser, go to `File -> Save page as -> and save it as a text file` in your Rproj folder in a directory called `/data`.
+
+```{r}
+ant_ice_loss = read.table("data/antarctica_mass_200204_202008.txt", skip=31, sep="", header = FALSE, col.names = c("decimal_date", "mass_Gt", "sigma_Gt")) # Antarctica ice mass loss
+grn_ice_loss = read.table("data/greenland_mass_200204_202008.txt", skip=31, sep="", header = FALSE, col.names = c("decimal_date", "mass_Gt", "sigma_Gt")) # Greenland ice mass loss
+head(ant_ice_loss)
+head(grn_ice_loss)
+dim(ant_ice_loss)
+summary(ant_ice_loss)
+
+plot(mass_Gt ~ decimal_date, data=ant_ice_loss, ylab="Antarctica Mass Loss (Gt)", type='l') +
+lines(mass_Gt ~ decimal_date, data=grn_ice_loss,type='l', col='red') 
+```
+
+The plot window is sized to capture the range of the data originally called, which in this case was the Antarctica ice loss. When we added the Greendland mass loss data to the plot, it extended outside the bounds of the plot window. Let's manually set the limits on the y-axis so we can see the whole Greenland time series.
+
+```{r}
+plot(mass_Gt ~ decimal_date, data=ant_ice_loss, ylab="Antarctica Mass Loss (Gt)", type='l', ylim=range(grn_ice_loss$mass_Gt)) +
+lines(mass_Gt ~ decimal_date, data=grn_ice_loss, type='l', col='red') 
+```
+
+We know that there was a gap between NASA Grace satellite missions from 2017-06-10 to 2018-06-14. Rather than have our plot function draw a line straight across the gap, we can break up the line into segments. I'm going to force R's plot() functions to note the gap in the data by inserting an NA into the data.frame at the start of 2018. Then let's add in grey shaded polygons behind it to show the uncertainty
+
+```{r}
+#Create data.frame with an NA between the GRACE missions. Column names must match so it will merge with ant and grn data
+data_break = data.frame(decimal_date=2018.0, mass_Gt=NA, sigma_Gt=NA)
+data_break
+
+#Add NA data point to the Antarctica ice trends data frame
+ant_ice_loss_with_NA = rbind(ant_ice_loss, data_break) # Merge ant_ice_loss data frame with our NA point
+tail(ant_ice_loss_with_NA) # Our NA value in 2018 is now the last row of our data frame
+ant_ice_loss_with_NA = ant_ice_loss_with_NA[order(ant_ice_loss_with_NA$decimal_date),] # Reorder the data frame, sorting by date
+
+#Repeat with Greenland data.frame
+grn_ice_loss_with_NA = rbind(grn_ice_loss, data_break) # Merge ant_ice_loss data frame with our NA point
+grn_ice_loss_with_NA = grn_ice_loss_with_NA[order(grn_ice_loss_with_NA$decimal_date),]
+
+plot(mass_Gt ~ decimal_date, data=ant_ice_loss_with_NA, ylab="Antarctica Mass Loss (Gt)", type='l', ylim=range(grn_ice_loss_with_NA$mass_Gt, na.rm=TRUE)) +
+lines(mass_Gt ~ decimal_date, data=grn_ice_loss_with_NA, type='l', col='red') 
+```
+
+NASA provided sigma, or one standard deviation, uncertainty data, which represents 68% of uncertainty. 2 X sigma represents 95% uncertainty. Plot 95% confidence intervals around the data by adding and subtracting 2*sigma from the mass loss estimates
+
+```{r}
+head(ant_ice_loss_with_NA)
+plot(mass_Gt ~ decimal_date, data=ant_ice_loss_with_NA, ylab="Antarctica Mass Loss (Gt)", xlab="Year", type='l', ylim=range(grn_ice_loss_with_NA$mass_Gt, na.rm=TRUE)) +
+lines((mass_Gt+2*sigma_Gt) ~ decimal_date, data=ant_ice_loss_with_NA, type='l', lty='dashed') +
+lines((mass_Gt-2*sigma_Gt) ~ decimal_date, data=ant_ice_loss_with_NA, type='l', lty='dashed') +
+lines(mass_Gt ~ decimal_date, data=grn_ice_loss_with_NA, type='l', col='red') +
+lines((mass_Gt+2*sigma_Gt) ~ decimal_date, data=grn_ice_loss_with_NA, type='l', lty='dashed', col="red") +
+lines((mass_Gt-2*sigma_Gt) ~ decimal_date, data=grn_ice_loss_with_NA, type='l', lty='dashed', col="red") 
+```
+
+To save our nice figure:
+
+```{r}
+pdf('figures/ice_mass_trends.pdf', width=7, height=5)
+plot(mass_Gt ~ decimal_date, data=ant_ice_loss_with_NA, ylab="Antarctica Mass Loss (Gt)", xlab="Year", type='l', ylim=range(grn_ice_loss_with_NA$mass_Gt, na.rm=TRUE)) +
+lines((mass_Gt+2*sigma_Gt) ~ decimal_date, data=ant_ice_loss_with_NA, type='l', lty='dashed') +
+lines((mass_Gt-2*sigma_Gt) ~ decimal_date, data=ant_ice_loss_with_NA, type='l', lty='dashed') +
+lines(mass_Gt ~ decimal_date, data=grn_ice_loss_with_NA, type='l', col='red') +
+lines((mass_Gt+2*sigma_Gt) ~ decimal_date, data=grn_ice_loss_with_NA, type='l', lty='dashed', col="red") +
+lines((mass_Gt-2*sigma_Gt) ~ decimal_date, data=grn_ice_loss_with_NA, type='l', lty='dashed', col="red") 
+dev.off()
+```
+Let's make a bar plot showing the difference in ice mass loss for Antarctica and Greenland:
+
+```{r}
+barplot(height=c(min(ant_ice_loss$mass_Gt)*(-1), min(grn_ice_loss$mass_Gt)*(-1)), names.arg=c("Antarctica","Greenland"), ylim=c(0,5000), ylab="Ice loss in Gt")
+```
+
+We can calculate the average annual ice loss for each ice sheet by dividing the change in ice lost from the beginning to the end of the time series by the total time that passed. Then we can display the ice loss rates in a bar graph:
+
+```{r}
+# Calculate ice loss rate (Gt / year) for Antarctica:
+n_rows_ant = dim(ant_ice_loss)[1]
+ant_loss_rate_Gt_per_yr = -1*(ant_ice_loss$mass_Gt[n_rows_ant] - ant_ice_loss$mass_Gt[1]) / (ant_ice_loss$decimal_date[n_rows_ant] - ant_ice_loss$decimal_date[1])
+
+# Calculate ice loss rate (Gt / year) for Greenland:
+n_rows_grn = dim(grn_ice_loss)[1]
+grn_loss_rate_Gt_per_yr = -1*(grn_ice_loss$mass_Gt[n_rows_grn] - grn_ice_loss$mass_Gt[1]) / (grn_ice_loss$decimal_date[n_rows_grn] - grn_ice_loss$decimal_date[1])
+
+# Plot ice loss rates in a bar graph:
+barplot(height=c(ant_loss_rate_Gt_per_yr, grn_loss_rate_Gt_per_yr), names.arg=c("Antarctica","Greenland"), ylab="Ice loss rate (Gt/year)")
+
+```
+
+To save our bar plot:
+```{r}
+pdf('figures/ice_loss_rate.pdf', width=5, height=5)
+barplot(height=c(ant_loss_rate_Gt_per_yr, grn_loss_rate_Gt_per_yr), names.arg=c("Antarctica","Greenland"), ylab="Ice loss rate (Gt/year)")
+dev.off()
+
+```
+
