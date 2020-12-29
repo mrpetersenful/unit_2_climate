@@ -12,9 +12,10 @@ knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618, collapse=TRUE)
 
 ***
 
-**Don't forget to go to the Unit 2 GitHub repository** 
+**Don't forget to fork the Unit 2 GitHub repository** 
 
 https://github.com/MSCI-599/unit_2_climate 
+
 Fork the repository to your own GitHub profile. From there, clone the forked repository and create a new RStudio project with version control called unit_2_climate on your local computer associated with this GitHub repo. Now you have access to all of the scripts, data and documentation files in the unit_2 class repo. I would recommend creating new `.R` files in your local RProject directory (i.e. the local version of your unit_2 repository) to type in the commands that we go over in class as you follow along. This gives you practice typing out code, and gives you the comfort to try new things without being afraid that you'll "mess up" your copy of the tutorial. You can always refer back to the lesson tutorial that I wrote, which is sitting right in your local directory. As you follow along in your own script (or even the `.Rmd` tutorial files) you can insert your code for the in-class exercises right in the middle of the scripts. When you make changes to the repository by adding new scripts or editing the existing scripts, don't forget to Commit and Push out your changes to your GitHub repo. Remember, those changes won't show up in the class repository, they'll only show up in **your** forked branch of the repository in your own GitHub profile.
 
 ***
@@ -25,24 +26,46 @@ Fork the repository to your own GitHub profile. From there, clone the forked rep
 
 #### Agenda:
 
-- Describe the data set: what are the columns and units? Where do the numbers come from? 
+- Examine the data set: what are the columns and units? Where do the numbers come from? 
 - What is the uncertainty in measurement? Resolution of the data? Interpretation of missing values?
 - Construct the necessary R code to import this data set as a `data.frame` object.
 - Plot the data and describe the trends you observe.
 
 Go to the website and register yourself as a NASA Earthdata user. From there you can click on the data and download it. In your web browser, go to `File -> Save page as -> and save it as a text file` in your Rproj folder in a directory called `/data`.
 
+#### Read in and explore data
+
+Use `read.table()` to read in the `.txt` data
+
 ```{r}
 ant_ice_loss = read.table("data/antarctica_mass_200204_202008.txt", skip=31, sep="", header = FALSE, col.names = c("decimal_date", "mass_Gt", "sigma_Gt")) # Antarctica ice mass loss
 grn_ice_loss = read.table("data/greenland_mass_200204_202008.txt", skip=31, sep="", header = FALSE, col.names = c("decimal_date", "mass_Gt", "sigma_Gt")) # Greenland ice mass loss
+```
+
+Explore the data. See how it appears in the Environment pane (upper right corner of RStudio)? You can click on it here, or use the View() function to open it up in a spreadsheet inside RStudio. Be careful you don't make changes to the spreadsheet because it will change the data.
+
+```{r}
+# View(grn_ice_loss)
 head(ant_ice_loss)
 head(grn_ice_loss)
 dim(ant_ice_loss)
 summary(ant_ice_loss)
+```
 
+Plot the data using a formula `y ~ x`
+
+```{r}
+# Plot Antarctic ice mass loss
+plot(mass_Gt ~ decimal_date, data=ant_ice_loss, ylab="Antarctica Mass Loss (Gt)")
+# Plot Greenland ice mass loss
+plot(mass_Gt ~ decimal_date, data=ant_ice_loss, ylab="Antarctica Mass Loss (Gt)")
+
+# Plot both together as lines
 plot(mass_Gt ~ decimal_date, data=ant_ice_loss, ylab="Antarctica Mass Loss (Gt)", type='l') +
 lines(mass_Gt ~ decimal_date, data=grn_ice_loss,type='l', col='red') 
 ```
+
+Note how we can use the `+` to link multiple plots together to print to the same window.
 
 The plot window is sized to capture the range of the data originally called, which in this case was the Antarctica ice loss. When we added the Greendland mass loss data to the plot, it extended outside the bounds of the plot window. Let's manually set the limits on the y-axis so we can see the whole Greenland time series.
 
@@ -64,26 +87,33 @@ tail(ant_ice_loss_with_NA) # Our NA value in 2018 is now the last row of our dat
 ant_ice_loss_with_NA = ant_ice_loss_with_NA[order(ant_ice_loss_with_NA$decimal_date),] # Reorder the data frame, sorting by date
 
 #Repeat with Greenland data.frame
-grn_ice_loss_with_NA = rbind(grn_ice_loss, data_break) # Merge ant_ice_loss data frame with our NA point
+grn_ice_loss_with_NA = rbind(grn_ice_loss, data_break) # Merge grn_ice_loss data frame with our NA point
 grn_ice_loss_with_NA = grn_ice_loss_with_NA[order(grn_ice_loss_with_NA$decimal_date),]
 
 plot(mass_Gt ~ decimal_date, data=ant_ice_loss_with_NA, ylab="Antarctica Mass Loss (Gt)", type='l', ylim=range(grn_ice_loss_with_NA$mass_Gt, na.rm=TRUE)) +
 lines(mass_Gt ~ decimal_date, data=grn_ice_loss_with_NA, type='l', col='red') 
 ```
 
-NASA provided sigma, or one standard deviation, uncertainty data, which represents 68% of uncertainty. 2 X sigma represents 95% uncertainty. Plot 95% confidence intervals around the data by adding and subtracting 2*sigma from the mass loss estimates
+NASA provided sigma, or one standard deviation, uncertainty data, which represents 68% of uncertainty. 2 X sigma represents 95% uncertainty. We can plot 95% confidence intervals around the data by adding and subtracting 2*sigma from the mass loss estimates
 
 ```{r}
 head(ant_ice_loss_with_NA)
-plot(mass_Gt ~ decimal_date, data=ant_ice_loss_with_NA, ylab="Antarctica Mass Loss (Gt)", xlab="Year", type='l', ylim=range(grn_ice_loss_with_NA$mass_Gt, na.rm=TRUE)) +
+plot(mass_Gt ~ decimal_date, data=ant_ice_loss_with_NA, ylab="Antarctica Mass Loss (Gt)", xlab="Year", type='l') +
 lines((mass_Gt+2*sigma_Gt) ~ decimal_date, data=ant_ice_loss_with_NA, type='l', lty='dashed') +
-lines((mass_Gt-2*sigma_Gt) ~ decimal_date, data=ant_ice_loss_with_NA, type='l', lty='dashed') +
-lines(mass_Gt ~ decimal_date, data=grn_ice_loss_with_NA, type='l', col='red') +
-lines((mass_Gt+2*sigma_Gt) ~ decimal_date, data=grn_ice_loss_with_NA, type='l', lty='dashed', col="red") +
-lines((mass_Gt-2*sigma_Gt) ~ decimal_date, data=grn_ice_loss_with_NA, type='l', lty='dashed', col="red") 
+lines((mass_Gt-2*sigma_Gt) ~ decimal_date, data=ant_ice_loss_with_NA, type='l', lty='dashed') 
 ```
 
-To save our nice figure:
+***
+
+### Exercise 1.1:
+
+Create the same time series figure with 95% confidence intervals for the Greenland ice sheet mass loss.
+
+***
+
+### Saving plots to hard drive
+
+Now we can combine our Antarctic and Greenland time series plots into the same plot and save our nice figure:
 
 ```{r}
 pdf('figures/ice_mass_trends.pdf', width=7, height=5)
@@ -95,33 +125,18 @@ lines((mass_Gt+2*sigma_Gt) ~ decimal_date, data=grn_ice_loss_with_NA, type='l', 
 lines((mass_Gt-2*sigma_Gt) ~ decimal_date, data=grn_ice_loss_with_NA, type='l', lty='dashed', col="red") 
 dev.off()
 ```
+
 Let's make a bar plot showing the difference in ice mass loss for Antarctica and Greenland:
 
 ```{r}
 barplot(height=c(min(ant_ice_loss$mass_Gt)*(-1), min(grn_ice_loss$mass_Gt)*(-1)), names.arg=c("Antarctica","Greenland"), ylim=c(0,5000), ylab="Ice loss in Gt")
 ```
 
-We can calculate the average annual ice loss for each ice sheet by dividing the change in ice lost from the beginning to the end of the time series by the total time that passed. Then we can display the ice loss rates in a bar graph:
+***
 
-```{r}
-# Calculate ice loss rate (Gt / year) for Antarctica:
-n_rows_ant = dim(ant_ice_loss)[1]
-ant_loss_rate_Gt_per_yr = -1*(ant_ice_loss$mass_Gt[n_rows_ant] - ant_ice_loss$mass_Gt[1]) / (ant_ice_loss$decimal_date[n_rows_ant] - ant_ice_loss$decimal_date[1])
+### Exercise 1.2:
 
-# Calculate ice loss rate (Gt / year) for Greenland:
-n_rows_grn = dim(grn_ice_loss)[1]
-grn_loss_rate_Gt_per_yr = -1*(grn_ice_loss$mass_Gt[n_rows_grn] - grn_ice_loss$mass_Gt[1]) / (grn_ice_loss$decimal_date[n_rows_grn] - grn_ice_loss$decimal_date[1])
+Calculate the average annual ice loss for each ice sheet by dividing the change in ice lost from the beginning to the end of the time series by the total time that passed. Then display the ice loss rates in a bar graph. Save the bar graph into the `figures/` directory in this repo.
 
-# Plot ice loss rates in a bar graph:
-barplot(height=c(ant_loss_rate_Gt_per_yr, grn_loss_rate_Gt_per_yr), names.arg=c("Antarctica","Greenland"), ylab="Ice loss rate (Gt/year)")
-
-```
-
-To save our bar plot:
-```{r}
-pdf('figures/ice_loss_rate.pdf', width=5, height=5)
-barplot(height=c(ant_loss_rate_Gt_per_yr, grn_loss_rate_Gt_per_yr), names.arg=c("Antarctica","Greenland"), ylab="Ice loss rate (Gt/year)")
-dev.off()
-
-```
+***
 

@@ -1,20 +1,23 @@
 ---
-title: "Boolean Logic"
-author: "Erin Meyer-Gutbrod"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618) 
+knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618, collapse=TRUE) 
 ```
+
+### Unit 2: Climate
+#### Lesson 2: Boolean Logic
+
+***
 
 ### Logical Subsetting
 
 Do you remember R's logical data type? To recap, you can select values with a vector of `TRUE`s and `FALSE`s. The vector must be the same length as the dimension that you wish to subset. R will return every element that matches a TRUE:
 
 ```{r}
-vec = c(1, 0, 1, 1, 2, 1, 0)
-vec[c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE)]
+vec = c(1, 0, 2, 1)
+vec[c(FALSE, FALSE, TRUE, FALSE)]
 ```
 
 At first glance, this system might seem impractical. Who wants to type out long vectors of TRUEs and FALSEs? No one. But you don't have to. You can let a logical test create a vector of TRUEs and FALSEs for you.
@@ -52,13 +55,13 @@ c(1, 2, 3) %in% c(3, 4, 5)
 c(1, 2, 3, 4) %in% c(3, 4, 5)
 ```
 
-Notice that you test for equality with a double equals sign, `==`, and not a single equals sign, `=`, which is another way to write `<-`. It is easy to forget and use `a = b` to test if `a` equals `b`. Unfortunately, you'll be in for a nasty surprise. R won't return a `TRUE` or `FALSE`, because it won't have to: `a` *will* equal `b`, because you just reassigned `a` to whatever value was in `b`.
+Notice that you test for equality with a double equals sign, `==`. Remember that a single equals sign `=` (as well as `<-`) is the assignment operator, not a Boolean operator. It is easy to forget and use `a = b` to test if `a` equals `b`. Unfortunately, you'll be in for a nasty surprise. R won't return a `TRUE` or `FALSE`, because it won't have to: `a` *will* equal `b`, because you just reassigned `a` to whatever value was in `b`.
 
 You can compare any two R objects with a logical operator; however, logical operators make the most sense if you compare two objects of the same data type. If you compare objects of different data types, R will use its coercion rules to coerce the objects to the same type before it makes the comparison.
 
-#### Exercise: Count the number of oceans with an average depth > 4000m
+#### Subsetting a data frame
 
-Using the data.frame that we built in an earlier class, we can subset the oceans with a depth > 4000m. 
+Using the oceans data.frame that we built in an earlier class, we can subset the oceans with a depth > 4000m. 
 
 ```{r}
 world_oceans = data.frame(ocean = c("Atlantic", "Pacific", "Indian", "Arctic", "Southern"),
@@ -66,6 +69,7 @@ world_oceans = data.frame(ocean = c("Atlantic", "Pacific", "Indian", "Arctic", "
                            avg_depth_m = c(3926, 4028, 3963, 3953, 4500))
 world_oceans$avg_depth_m > 4000
 ```
+
 Then we can use `sum()` to quickly count the number of `TRUE`s in the previous vector. R will coerce logicals to numerics when you do math with them. R will turn `TRUE`s into ones and `FALSE`s into zeroes. As a result, sum will count the number of `TRUE`s. Now we can add up the number of entries that met our criteria (and therefore count the average depth variables > 4000m)
 
 ```{r}
@@ -75,21 +79,43 @@ sum(world_oceans$avg_depth_m > 4000)
 Now we can use logical subsetting to print out the name of the oceans that meet our depth criteria. Since the logical test that is performed on the `avg_depth_m` variable returns a logical vector, you can use it as an index to find the corresponding `ocean` name variables:
 
 ```{r}
-world_oceans$ocean[world_oceans$avg_depth_m > 4000]
+world_oceans$ocean[world_oceans$avg_depth_m > 4000]  # Returns just the ocean names
+world_oceans[world_oceans$avg_depth_m > 4000, ]  # Returns all columns
 ```
+
 To summarize, you can use a logical test to select values within an object.
 
 Logical subsetting is a powerful technique because it lets you quickly identify, extract, and modify individual values in your data set. When you work with logical subsetting, you do not need to know where in your data set a value exists. You only need to know how to describe the value with a logical test.
 
+***
+
+### Exercise 2.1
+
+Create a vector with the names of the oceans you have personally visited. Use the `%in%` operator to subset the oceans you have visited from the world_oceans data frame. Now use subsetting to find out whether you have ever personally visited any oceans that have a smaller area than the Atlantic ocean.
+
+***
+
 #### Word of warning
 
 When you use the `==` operator to test the equality of two numbers, you may get unexpected results due to the nuance of storing numbers in binary. This only tends to be an issue when comparing numbers with decimals, not whole numbers. Here is an example:
+
 ```{r}
 1 + 2 == 3
 0.1 + 0.2 == 0.3
 ```
+
 This is true in most programming languages and is not unique to R. If you want to find out more, read this:
 <https://medium.com/better-programming/why-is-0-1-0-2-not-equal-to-0-3-in-most-programming-languages-99432310d476>
+
+However, the `>` and `<` operators never result in unexpected behavior, so when you need to perform a logical test where this might be a problem, you can change your logic to use `>` or `<` instead along with some error threshold that you are willing to accept (computer rounding errors will be very very very small):
+
+```{r}
+0.3 - (0.1 + 0.2)  # doesn't == zero due to computer "rounding errors"
+
+# Change the logical test:
+error_threshold = 0.000001 
+abs(0.3 - (0.1 + 0.2)) < error_threshold
+```
 
 ## Boolean Operators
 
@@ -133,35 +159,17 @@ world_oceans$ocean[world_oceans$avg_depth_m > 4000 & world_oceans$area_km2 < 50e
 
 ```
 
-#### Exercise
-
-If you think you have the hang of logical tests, try converting these sentences into tests written with R code. To help you out, I've defined some R objects after the sentences that you can use to test your answers: 
-* Is w positive?
-* Is x greater than 10 and less than 20?
-* Is object y the word February?
-* Is _every_ value in z a day of the week?
+Two other useful functions are `any` and `all`. The `any` function takes a vector of logicals and returns `TRUE` if any of the entries is `TRUE`. The `all` function takes a vector of logicals and returns `TRUE` if all of the entries are `TRUE`. Here is an example:
 
 ```{r}
-w = c(-1, 0, 1)
-x = c(5, 15)
-y = "February"
-z = c("Monday", "Tuesday", "Friday")
+z = c(TRUE, TRUE, FALSE)
+any(z)
+all(z)
 ```
 
-Here are some model answers. If you got stuck, be sure to re-read how R evaluates logical tests that use Boolean values:
+#### Dealing with NA values with `is.na()`
 
-```{r}
-w > 0
-10 < x & x < 20
-y == "February"
-all(z %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", 
-  "Saturday", "Sunday"))
-```
-
-#### A few more handy functions
-`is.na()`, `any()` and `all()`
-
-On occasion, you may want to identify the `NA`s in your data set with a logical test, but that too creates a problem. How would you go about it? If something is a missing value, any logical test that uses it will return a missing value, even this test:
+On occasion, you may want to identify the `NA`s in your data set with a logical test, but that too creates a problem. If something is a missing value, any logical test that uses it will return a missing value, even this test:
 
 ```{r}
 NA == NA
@@ -173,7 +181,7 @@ Which means that tests like this won't help you find missing values:
 c(1, 2, 3, NA) == NA
 ```
 
-But don't worry too hard; R supplies a special function that can test whether a value is an `NA`. The function is sensibly named `is.na`:
+So R supplies the function `is.na()` that can test whether a value is an `NA`. 
 
 ```{r}
 is.na(NA)
@@ -181,19 +189,29 @@ vec <- c(1, 2, 3, NA)
 is.na(vec)
 ```
 
-Two other useful functions are `any` and `all`. The `any` function takes a vector of logicals and returns `TRUE` if any of the entries is `TRUE`. The `all` function takes a vector of logicals and returns `TRUE` if all of the entries are `TRUE`. Here is an example:
+***
+
+#### Exercise 2.2
+
+Here are a few random variables. Try converting these sentences into tests written with R code. 
 
 ```{r}
-z = c(TRUE, TRUE, FALSE)
-any(z)
-all(z)
+w = 15
+x = c(-1, 0, 1)
+y = "February"
+z = c("Monday", "Tuesday", "January")
 ```
+
+-  Is w greater than 10 and less than 20?
+-  Are any of the values in x positive?
+-  Are all of the values in x positive?
+-  Is object y the word February?
+-  How many values in z are days of the week?
+
+***
 
 ## Summary
 
 When you work with large data sets, modifying and retrieving values creates a logistical problem of its own. How can you search through the data to find the values that you want to modify or retrieve? As an R user, you can do this with logical subsetting. Create a logical test with logical and Boolean operators and then use the test as an index in R's bracket notation. R will return the values that you are looking for, even if you do not know where they are.
-
-
-
 
 

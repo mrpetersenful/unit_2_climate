@@ -1,16 +1,17 @@
 ---
-title: "Conditional Statements"
-author: "MSCI 599"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618) 
+knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618, collapse=TRUE) 
 ```
 
-## if Statements
+### Unit 2: Climate
+#### Lesson 3: Conditional Statements
 
-Linking cases together in parallel requires a bit of structure; your program faces a fork in the road whenever it must choose between cases. You can help the program navigate this fork with an `if` statement.
+***
+
+## if Statements
 
 An `if` statement tells R to do a certain task for a certain case. In English you would say something like, "If this is true, do that." In R, you would say:
 
@@ -22,15 +23,7 @@ if (this) {
 
 The `this` object should be a logical test or an R expression that evaluates to a single `TRUE` or `FALSE`. If `this` evaluates to `TRUE`, R will run all of the code that appears between the braces that follow the `if` statement (i.e., between the `{` and `}` symbols). If `this` evaluates to `FALSE`, R will skip the code between the braces without running it.
 
-For example, you could write an `if` statement that ensures some object, `num`, is positive:
-
-```r
-if (num < 0) {
-  num <- num * -1
-}
-```
-
-If `num < 0` is `TRUE`, R will multiply `num` by negative one, which will make `num` positive: 
+For example, you could write an `if` statement that ensures some object, `num`, is positive. If `num < 0` is `TRUE`, R will multiply `num` by negative one, which will make `num` positive: 
 
 ```{r}
 num = -2
@@ -40,7 +33,7 @@ if (num < 0) {
 num
 ```
 
-If `num < 0` is `FALSE`, R will do nothing and `num` will remain as it is—positive (or zero):
+If `num < 0` is `FALSE`, R will do nothing and `num` will remain as it is:
 
 ```{r}
 num = 4
@@ -51,7 +44,7 @@ num
 ## 4
 ```
 
-The condition of an `if` statement must evaluate to a _single_ `TRUE` or `FALSE`. If the condition creates a vector of `TRUE`s and `FALSE`s (which is easier to make than you may think), your `if` statement will print a warning message and use only the first element of the vector. Remember that you can condense vectors of logical values to a single `TRUE` or `FALSE` with the functions `any` and `all`.
+The condition of an `if` statement must evaluate to a *single* `TRUE` or `FALSE`. If the condition creates a vector of `TRUE`s and `FALSE`s (which is easier to make than you may think), your `if` statement will print a warning message and use only the first element of the vector. Remember that you can condense vectors of logical values to a single `TRUE` or `FALSE` with the functions `any` and `all`.
 
 You don't have to limit your `if` statements to a single line of code; you can include as many lines as you like between the braces. For example, the following code uses many lines to ensure that `num` is positive. The additional lines print some informative statements if `num` begins as a negative number. R will skip the entire code block—`print` statements and all—if `num` begins as a positive number:
 
@@ -66,37 +59,13 @@ if (num < 0) {
 num
 ```
 
-Try the following exercises to develop your understanding of `if` statements.
+***
 
-#### Exercise 1
+#### Exercise 3.1
 
-What will this return?
-```r
-x = 1
-if (3 == 3) {
-  x = 2
-}
-x
-```
-The code will return the number 2. `x` begins as 1, and then R encounters the `if` statement. Since the condition evaluates to `TRUE`, R will run `x = 2`, changing the value of `x`.
+Let's say you took someone's temperature and you want to first evaluate whether or not they have a fever. If they DO have a fever, claculate how different their temperature is from the median human temperature of 98.6 and print out the answer. Also, if they DO have a fever, evaluate whether the fever is high > 101 and if it is, print out a warning message. This will require a set of nested `if()` statements. Test your code with a temperature that is not a fever (`temp = 98.4`), that is a low fever (`temp = 99.5`) and that is a high fever (`temp = 102.1`).
 
-
-#### Exercise 2
-
-`if` statements can be nested inside of each other. What will this return?
-
-```r
-x = 1
-if (x == 1) {
-  x <- 2
-  if (x == 1) {
-    x = 3
-  }
-}
-x
-```
-Once again, the code will return the number 2. `x` starts out as 1, and the condition of the first `if` statement will evaluate to `TRUE`, which causes R to run the code in the body of the `if` statement. First, R sets `x` equal to 2, then R evaluates the second `if` statement, which is in the body of the first. This time `x == 1` will evaluate to `FALSE` because `x` now equals 2. As a result, R ignores `x = 3` and exits both `if` statements. 
-
+***
 
 ## else Statements
 
@@ -110,33 +79,18 @@ if (this) {
 }
 ```
 
+When `this` evaluates to `TRUE`, R will run the code in the first set of braces, but not the code in the second. When `this` evaluates to `FALSE`, R will run the code in the second set of braces, but not the first. 
 
-When `this` evaluates to `TRUE`, R will run the code in the first set of braces, but not the code in the second. When `this` evaluates to `FALSE`, R will run the code in the second set of braces, but not the first. You can use this arrangement to cover all of the possible cases. For example, you could write some code that rounds a decimal to the nearest integer.
-
-Start with a decimal:
-
-```{r}
-a = 3.14
-```
-
-Then isolate the decimal component with `trunc`. The `trunc` function takes a number and returns only the portion of the number that appears to the left of the decimal place (i.e., the integer part of the number). 
+For example, let's use an if/else statement to notify a student whether they are passing or failing a class. 
 
 ```{r}
-dec = a - trunc(a)
-dec
-```
+grade = 83
 
-`a - trunc(a)` is a convenient way to return the decimal part of `a`.
-
-Then use an `if else` tree to round the number (either up or down):
-
-```{r}
-if (dec >= 0.5) {
-  a = trunc(a) + 1
-} else {
-  a = trunc(a)
+if(grade > 60){
+  print("You passed!")
+}else{
+  print("You failed...")
 }
-a
 ```
 
 If your situation has more than two mutually exclusive cases, you can string multiple `if` and `else` statements together by adding a new `if` statement immediately after `else`. For example:
@@ -157,9 +111,17 @@ R will work through the `if` conditions until one evaluates to `TRUE`, then R wi
 
 If two `if` statements describe mutually exclusive events, it is better to join the `if` statements with an `else if` than to list them separately. This lets R ignore the second `if` statement whenever the first returns a `TRUE`, which saves work.
 
+***
+
+### Exercise 3.2
+
+Let's say you have the number of donuts your Dad bought on Sunday stored in variable `n_donuts`. Write an if/else chain to print out a statement that states whether Dad bought less than a dozen, a dozen (12), a baker's dozen (13) or more than a baker's dozen. 
+
+***
+
 ## ifelse()
 
-A related function that is very useful is `ifelse`. This function takes three arguments: a logical and two possible answers. If the logical is `TRUE`, the value in the second argument is returned and if `FALSE`, the value in the third argument is returned. Here is an example:
+A related function that is very useful is `ifelse`. This works just like an if/else combination that we saw earlier, but condenses it into a single line of code. This function takes three arguments: a logical and two possible answers. If the logical is `TRUE`, the value in the second argument is returned and if `FALSE`, the value in the third argument is returned. Here is an example:
 
 ```{r}
 a = 0
@@ -171,46 +133,17 @@ The function is particularly useful because it works on vectors. It examines eac
 ```{r}
 a = c(0, 1, 2, -4, 5)
 result = ifelse(a > 0, 1/a, NA)
+cbind(a,result)
 ```
 
-This table helps us see what happened:
+***
 
- ```{r, echo=FALSE}
- library(dplyr)
- library(kableExtra)
- tmp <- data.frame(a = a, is_a_positive = a > 0, answer1 = 1/a, answer2 = NA, result = result)
- if(knitr::is_html_output()){
-   knitr::kable(tmp, "html") %>%
-     kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
- } else{
-   knitr::kable(tmp, "latex", booktabs = TRUE) %>%
-     kableExtra::kable_styling(font_size = 8)
- }
- ```
+### Exercise 3.3
 
-Perhaps in the dataset you are using, the number `-999` is used to indicate a missing value. To take advantage of R's intuitive handling of missing values (in math equations, plotting, etc.) you should replace those elements with `NA`. Here is an example of how the `ifelse()` function can be readily used to replace all the `-999` values in a vector with `NA`:
+Perhaps in a dataset that you are using, the number `-999` is used to indicate a missing value (this is super common). To take advantage of R's intuitive handling of missing values (in math equations, plotting, etc.) you should replace those elements with `NA`. Use the ifelse() statement to replace all of the `-999` values in the `data` vector with `NA`. Then use an if/else chain to print out a statement about whether there are any `NA`s in the `data` variable. It may help to use functions we covered earlier like `any()` and `is.na()`.
 
 ```{r}
 data = c(1,3,5,-999,2,-999,8)
-data_with_nas = ifelse(data==-999, NA, data)
-data_with_nas
 ```
 
-Two other useful functions are `any` and `all`. The `any` function takes a vector of logicals and returns `TRUE` if any of the entries is `TRUE`. The `all` function takes a vector of logicals and returns `TRUE` if all of the entries are `TRUE`. Here is an example:
-
-```{r}
-z = c(TRUE, TRUE, FALSE)
-any(z)
-all(z)
-```
-
-You could use the `any()` function to test your data for the presence of `NA` like this:
-
-```{r}
-if (any(is.na(data_with_nas))){
-  print("There are NAs in this data!")
-}else{
-  "There are no NAs in this data"
-}
-```
-
+***
