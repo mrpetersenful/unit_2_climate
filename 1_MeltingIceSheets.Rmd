@@ -1,24 +1,32 @@
 ---
-title: "Melting Ice Sheets"
-author: "MSCI 599"
 output: html_document
-self_contained: no
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618) 
+knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618, collapse=TRUE) 
 ```
 
-# Unit I: Climate Change Module
-### Exercise II: Melting Ice Sheets
+### Unit 2: Climate
+#### Lesson 1: Melting Ice Sheets
 #### Skills: read data, line plot, bar plot, saving plots, merging, confidence intervals, indexing, arithmetic
+
+***
+
+**Don't forget to go to the Unit 2 GitHub repository** 
+
+https://github.com/MSCI-599/unit_2_climate 
+Fork the repository to your own GitHub profile. From there, clone the forked repository and create a new RStudio project with version control called unit_2_climate on your local computer associated with this GitHub repo. Now you have access to all of the scripts, data and documentation files in the unit_2 class repo. I would recommend creating new `.R` files in your local RProject directory (i.e. the local version of your unit_2 repository) to type in the commands that we go over in class as you follow along. This gives you practice typing out code, and gives you the comfort to try new things without being afraid that you'll "mess up" your copy of the tutorial. You can always refer back to the lesson tutorial that I wrote, which is sitting right in your local directory. As you follow along in your own script (or even the `.Rmd` tutorial files) you can insert your code for the in-class exercises right in the middle of the scripts. When you make changes to the repository by adding new scripts or editing the existing scripts, don't forget to Commit and Push out your changes to your GitHub repo. Remember, those changes won't show up in the class repository, they'll only show up in **your** forked branch of the repository in your own GitHub profile.
+
+***
+
+#### Explore NASA melting ice sheet data
 
 - Data description: <http://climate.nasa.gov/vital-signs/land-ice/>
 
-## Agenda:
+#### Agenda:
 
 - Describe the data set: what are the columns and units? Where do the numbers come from? 
-- What is the uncertainty in measurment? Resolution of the data? Interpretation of missing values?
+- What is the uncertainty in measurement? Resolution of the data? Interpretation of missing values?
 - Construct the necessary R code to import this data set as a `data.frame` object.
 - Plot the data and describe the trends you observe.
 
