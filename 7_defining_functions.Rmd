@@ -1,14 +1,15 @@
 ---
-title: "Defining Functions"
-author: "MSCI 599"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618) 
+knitr::opts_chunk$set(fig.width=6, fig.asp = 0.8, collapse=TRUE) 
 ```
 
-## Defining functions
+### Unit 2: Climate
+#### Lesson 7: Defining functions
+
+***
 
 One of the best ways to improve your coding as a data scientist is to write functions. Functions allow you to automate common tasks in a more powerful and general way than copy-and-pasting. Writing a function has three big advantages over using copy-and-paste:
 
@@ -16,7 +17,7 @@ One of the best ways to improve your coding as a data scientist is to write func
 2. As requirements change, you only need to update code in one place, instead of many.
 3. You eliminate the chance of making incidental mistakes when you copy and paste (i.e. updating a variable name in one place, but not in another).
 
-You should consider writing a function whenever you’ve copied and pasted a block of code more than twice (i.e. you now have three copies of the same code). A simple example is computing averages. We can compute the average of a vector `x` using the `sum` and `length` functions: `sum(x)/length(x)`. Because we do this repeatedly, it is much more efficient to write a function that performs this operation. This particular operation is so common that someone already wrote the `mean` function and it is included in base R. However, you will encounter situations in which the function does not already exist, so R permits you to write your own. These functions that you write yourself are typically called **user-defined functions**. A simple version of a function that computes the average can be defined like this:
+You should consider writing a function whenever you’ve copied and pasted a block of code more than twice (i.e. you now have three copies of the same code). A simple example is computing averages. We can compute the average of a vector `x` using the `sum()` and `length()` functions: `sum(x)/length(x)`. Because we do this repeatedly, it is much more efficient to write a function that performs this operation. This particular operation is so common that someone already wrote the `mean()` function and it is included in base R. However, you will encounter situations in which an operation that you need to repeat does not already exist as a function, so R permits you to write your own. These functions that you write yourself are typically called **user-defined functions**. A simple version of a function that computes the average can be defined like this:
 
 ```{r}
 avg = function(x){
@@ -26,7 +27,7 @@ avg = function(x){
 }
 ```
 
-Now `avg` is a function that computes the mean. The value returned by the function, by default, is the output from the last line in the function. In this case, when you call `avg()`, the value of `s/n` will be returned. Instead, you could explictly indicate the value that you want returned in the function, or return a value earlier than the final line by using `return()`.
+Now `avg()` is a function that computes the mean. The value returned by the function, by default, is the output from the last line in the function. In this case, when you call `avg()`, the value of `s/n` will be returned. Instead, you could explictly indicate the value that you want returned in the function, or return a value earlier than the final line by using `return()`.
 
 Now that we have made our function `avg()`, let's call it, and compare it to the output of the base-R function `mean()`:
 
@@ -72,15 +73,17 @@ Note that I documented my function with a comment. Don't forget to do that! In t
 When you pass parameters in a function call, you can pass the parameter assignments in the exact order that they are listed in the function definition. In this case, the data that you want to take the mean of, `x`, is the first parameter, and the boolean variable that indicates whether you want the mean to be arithmetic is the second parameter. In many cases, instead of relying on listing your parameters in the exact order provided in the function definition, you can explicitly provide the name of the parameter and not worry about the order that you list the parameters. 
 
 Here are some examples:
-```{r, eval=FALSE}
+
+```{r}
 dat = c(1,3,5,7)
 avg(dat)
 avg(dat, TRUE) # Same answer as above since TRUE is the default
-avg(x=dat, arithmetic=TRUE)  # best coding practice bc each parameter is very explicit
-avg(x=dat, arithmetic=FALSE)  # reversed the order of the parameters without explicitly naming the parameters
+avg(x=dat, arithmetic=TRUE)  # here we make our selection of the default parameter explicit
+avg(x=dat, arithmetic=FALSE)  
 ```
 
 These calls will throw an error or result in unexpected behavior:
+
 ```{r, eval=FALSE}
 avg()  # didn't include the required parameter x
 avg(FALSE, dat)  # reversed the order of the parameters without explicitly naming the parameters
@@ -96,15 +99,24 @@ avg = function(x, arithmetic = TRUE){
   ifelse(arithmetic, sum(x)/n, prod(x)^(1/n))
 }
 ```
+
 We have now designed our function to throw an error and send out an error message to the user:
+
 ```{r, eval=FALSE}
 avg(FALSE)
 ```
 ```
 >Error in avg(FALSE) : Error: function failed. x must be a numeric
 ```
+***
 
-## A note on naming functions
+### Exercise 7.1
+
+Create a function that reads in someone's grade percentage points and returns their letter grade (A: 90-100, B: 80-90, etc.). You can imagine how you could make this function fancier by including grading scheme info in the parameters to ask if the function user wanted to also know if the student earned a B+, B or B-.
+
+***
+
+#### A note on naming functions
 
 The name of a function is important. Ideally, the name of your function will be short, but clearly evoke what the function does. That’s hard! But it’s better to be clear than short, as RStudio’s autocomplete makes it easy to type long names.
 
@@ -118,8 +130,8 @@ f()
 my_awesome_function()
 
 # Long, but clear
-impute_missing()
-collapse_years()
+remove_na()
+plot_time_series()
 ```
 
 If your function name is composed of multiple words, I recommend using “snake_case”, where each lowercase word is separated by an underscore. camelCase is a popular alternative. It doesn’t really matter which one you pick, the important thing is to be consistent: pick one or the other and stick with it. (Admittedly, I'm not great at being consistent, but I'm working on it...).

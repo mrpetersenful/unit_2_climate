@@ -1,14 +1,19 @@
 ---
-title: "loops"
-author: "MSCI 599"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618) 
+knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618, collapse=TRUE) 
 ```
 
-## for loops
+### Unit 2: Climate
+#### Lesson 5: For loops
+
+***
+
+Often in data science, and programming in general, there are tasks that need to be repeated many times. Perhaps the task needs to be repeated identically each time, or perhaps a small change needs to be made during each repetition. One straight-forward way to repeat a chunk of code is with a loop. 
+
+### for loops
 
 A `for` loop repeats a chunk of code many times, once for each element in a set of input. `for` loops provide a way to tell R, "Do this for every value of that." In R syntax, this looks like:
 
@@ -66,6 +71,14 @@ my_vector_squared
 
 It is important to note here that an empty vector with the correct length was made before starting the `for` loop and the iterand `i` was used to step through both our original data vector and our new results vector. Programers call this *initializing* an object, or creating an empty object to fill later. This is a much better (and faster) practice than appending a new result onto a results vector, and therefore changing the lengtt of the results vector with every iteration of the loop. 
 
+***
+
+### Exercise 5.1
+
+Use a for() loop to calculate the factorial (symbol !) of any integer number greater than 0. (For example: 3! = 3*2*1 = 6) Test it with `num = 3` and `num = 6`.
+
+***
+
 ### Nested `for` loops
 
 Imagine you have a 2-D matrix and you want to perform an operation on every element. For example, perhaps you have a matrix of numbers with 2 rows and 3 columns, and you want to create a second matrix that contains the squared value of each element. You could use a nested for loop, where the first (outer) loop steps through every row in the matrix and the second (inner) loops steps through every column of the matrix. Using the nested loops you will be able to systematically interact with each element in the matrix one at a time.
@@ -102,6 +115,8 @@ mat^2
 ```
 However, not all functions and calculations are vectorized, so a loop may be needed for some goals. For example, sometimes I want to make and save the same type of figure but with many different sets of data. I can use a for loop to step through a range of data sets, then build and save the figure inside the loop.
 
+***
+
 ## while Loops
 
 Another type of loop is the `while` loop, which reruns a chunk of code _while_ a certain condition remains `TRUE`. To create a `while` loop, follow `while` by a condition and a chunk of code, like this:
@@ -133,7 +148,13 @@ total_catch_lb
 
 This code will probably result in our fisherman catching about 25 fish, since I set the mean weight of the fish in the lake at 2lb. Technically, our fisherman might need to throw the last fish back, since it put him over the weight limit (`total_catch_lb > 50`). 
 
-In practice, `while` loops are much less common than `for` loops in R:
+***
+
+### Exercise 5.2
+
+Use a while loop to build a simple number matching game. Pick a number between 1 and 10 outside of the loop. Then, inside the loop, step through 1 to 10 and test if that iteration of the loop has guessed the correct number. At the end, print out the number of guesses it took for your loop to guess the right number.
+
+***
 
 ## Summary
 

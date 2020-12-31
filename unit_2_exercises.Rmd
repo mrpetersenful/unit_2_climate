@@ -73,9 +73,13 @@ dev.off()
 Create a vector with the names of the oceans you have personally visited. Use the `%in%` operator to subset the oceans you have visited from the world_oceans data frame. Now use subsetting to find out whether you have ever personally visited any oceans that have a smaller area than the Atlantic ocean
 
 ```{r}
+world_oceans = data.frame(ocean = c("Atlantic", "Pacific", "Indian", "Arctic", "Southern"),
+                           area_km2 = c(77e6, 156e6, 69e6, 14e6, 20e6),
+                           avg_depth_m = c(3926, 4028, 3963, 3953, 4500))
+
 # Subset the oceans I have visited
 my_ocean_names = c("Atlantic", "Pacific")
-my_oceans = world_oceans[world_oceans$ocean %in% my_oceans, ]  
+my_oceans = world_oceans[world_oceans$ocean %in% my_ocean_names, ]  
 
 # Which of "my" oceans are smaller than the Atlantic?
 Atlantic_area = world_oceans$area[world_oceans$ocean=="Atlantic"]
@@ -171,5 +175,158 @@ if (any(is.na(data_with_nas))){
 
 ***
 
+### Exercise 4.1
 
+As a result of climate change, there have been many phenological changes in the physical and biological environment. That means that there is a shift in the timing of seasonal phenomena and activities. One of the most obvious examples of this is that as many parts of the world warm, the spring growing season for plants is starting a bit earlier each spring. Plot the seasonal cycle of co2 for 1959 (the first full year of data) and 2019 (the last full year of data) on the same figure. What do you notice? Is this a robust analysis to determine if there has been a phenological shift in global carbon uptake / respiration?
+
+```{r, eval=FALSE}
+co2_monthly_cycle_1959 = co2[co2$year==1959, c(1,2,9)]
+co2_monthly_cycle_2019 = co2[co2$year==2019, c(1,2,9)]
+
+plot(seasonal_cycle ~ month, type="l", data=co2_monthly_cycle_1959, ylim=c(-4,4)) +
+lines(seasonal_cycle ~ month, type="l", data=co2_monthly_cycle_2019, col="red")
+```
+
+***
+
+### Exercise 5.1
+
+Use a for() loop to calculate the factorial (symbol !) of any integer number greater than 0. (For example: 3! = 3*2*1 = 6) Test it with `num = 3` and `num = 6`.
+
+```{r}
+num = 6
+
+factorial = 1
+for (i in seq(num)){
+  factorial = i*factorial
+}
+factorial
+```
+
+***
+
+### Exercise 5.2
+
+Use a while loop to build a simple number matching game. Pick a number between 1 and 10 outside of the loop. Then, inside the loop, step through 1 to 10 and test if that iteration of the loop has guessed the correct number. At the end, print out the number of guesses it took for your loop to guess the right number.
+
+```{r}
+pick = 4
+guess = 1
+answer = FALSE
+while(answer == FALSE){
+  if (pick == guess){
+    answer = TRUE
+  } else{
+    guess = guess+1
+  }
+}
+
+print(paste("My loop guessed your number after ",guess," guesses!"))
+```
+
+***
+
+### Exercise 6.1
+
+Use a for loop to calculate the total ice loss in each full decade of the data, starting with 1980-1989. Plot the ice loss per decade in a bar plot.
+
+```{r, eval=FALSE}
+# Subset only the years I need
+ice_decades = arctic_ice_annual[which(arctic_ice_annual$Year >= 1980 & arctic_ice_annual$Year < 2020),]
+summary(ice_decades)
+
+# Initialize my results data frame
+n_decades = dim(ice_decades)[1]/10
+decadal_loss = data.frame(decade = seq(n_decades), 
+                          decade_name = c("1980s", "1990s", "2000s", "2010s"), 
+                          ice_loss_million_km2=NA)
+# Step through each decade and calculate difference in ice extent btwn the first and last year
+for (i in seq(n_decades)){
+  # fancy index math:
+  print(paste("index from ", (i-1)*10+1, " to ",(i-1)*10+10))
+  decadal_loss$ice_loss_million_km2[i] = ice_decades$extent_annual_avg[(i-1)*10+1] - ice_decades$extent_annual_avg[(i-1)*10+10]
+}
+
+barplot(height=decadal_loss$ice_loss_million_km2, names.arg=decadal_loss$decade_name, ylab="Arctic ice loss (million Km^2)")
+```
+
+***
+
+### Exercise 7.1
+
+Create a function that reads in someone's grade percentage points and returns their letter grade (A: 90-100, B: 80-90, etc.). You can imagine how you could make this function fancier by including grading scheme info in the parameters to ask if the function user wanted to also know if the student earned a B+, B or B-.
+
+```{r}
+convert_grade_to_letter = function(grade_percent){
+  if(grade_percent >= 90){
+    grade_letter = "A"
+  }else if(grade_percent >= 80){
+    grade_letter = "B"
+  }else if(grade_percent >= 70){
+    grade_letter = "C"
+  }else if(grade_percent >= 60){
+    grade_letter = "D"
+  }else{
+    grade_letter = "F"
+  }
+  
+  grade_letter
+}
+
+convert_grade_to_letter(91)
+convert_grade_to_letter(58)
+```
+
+***
+
+### Exercise 8.1
+
+Create a user-defined function that is designed to take this temperature anomaly data frame `temp_anomaly` as a parameter called `data` along with a variable `num_years` that indicates the number of years in the rolling average that someone may want to compute. Have the function return the `temp_anomaly` data frame with an added column called `temp_anomaly$roll_avg` that contains the rolling average corresponding to `num_years`. Just like above, you will need to handle indexing differently if `num_years` is even vs. odd. So make sure you include an if statement in your function with an even vs. odd test. I usually use the modulus operator `%%` in R which returns the remainder of a division operation, so num `%%` 2 equals 0 for even numbers and returns 1 for odd numbers.
+
+```{r}
+
+calc_rolling_avg = function(data, num_years=5){ # Set 5-yr avgs as default
+  data$roll_avg = NA # Initialize results column
+  
+  # Use for loop to calculate rolling average
+  for (i in seq(dim(data)[1]))
+  {
+    if(num_years %% 2 == 0){ # if even
+      lower_index = num_years/2
+      upper_index = num_years/2 - 1
+      # Calculate moving averages for odd num_years
+      if (i > lower_index & i < (dim(data)[1]-upper_index)){
+        data$roll_avg[i] = mean(data[c((i-lower_index):(i+upper_index)),'No_Smoothing'])
+      }
+    } else{ # if odd
+      lower_index = (num_years - 1)/2
+      upper_index = (num_years - 1)/2
+      # Calculate moving averages for even num_years
+      if (i > lower_index & i < (dim(temp_anomaly)[1]-upper_index)){
+        data$roll_avg[i] = mean(data[c((i-lower_index):(i+upper_index)),'No_Smoothing'])
+      }
+    }
+  }
+  
+  return(data$roll_avg)
+}
+
+# Use the calc_rolling_avg() function to calculate rolling averages
+temp_anomaly_roll_avg = temp_anomaly
+temp_anomaly_roll_avg$avg_5yr = calc_rolling_avg(temp_anomaly)
+temp_anomaly_roll_avg$avg_10yr = calc_rolling_avg(temp_anomaly, num_years=10)
+temp_anomaly_roll_avg$avg_20yr = calc_rolling_avg(temp_anomaly, num_years=20)
+head(temp_anomaly_roll_avg)
+
+# Plot them
+plot(No_Smoothing ~ Year, data=temp_anomaly_roll_avg, ylab="Global mean temperature anomaly") + 
+  lines(No_Smoothing ~ Year, data=roll_avg) +
+  lines(avg_5yr ~ Year, data=temp_anomaly_roll_avg, col="red") +
+  lines(avg_10yr ~ Year, data=temp_anomaly_roll_avg, col="purple") +
+  lines(avg_20yr ~ Year, data=temp_anomaly_roll_avg, col="blue") 
+
+# plot it
+```
+
+***
 
