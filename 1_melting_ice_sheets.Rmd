@@ -24,6 +24,10 @@ Fork the repository to your own GitHub profile. From there, clone the forked rep
 
 - Data description: <http://climate.nasa.gov/vital-signs/land-ice/>
 
+The Antarctic and Greenland ice sheet mass loss data is collected by NASA's GRACE satellites. This is a pair of satellites that orbit the Earth together at a distance of about 220 km apart to sense gravity anomalies. When the leading satellite orbits over a part of Earth with slightly stronger gravity, it is pulled ahead a bit faster. Then when it passes the high-gravity area, the satellite slows down again. The distance between the two satellites is consantly measured with a microwave ranging system, and this distance, combined with precise GPS measurements for each satellite in the pair, can be used to generate a map of Earth's gravity field. Ice loss is correlated with a decline in the gravity anomaly over the ice sheet as the ice mass melts and redistributes across the ocean basin. 
+
+![](doc/grace_satellites.jpg){width=50%}
+
 #### Agenda:
 
 - Examine the data set: what are the columns and units? Where do the numbers come from? 
@@ -42,7 +46,7 @@ ant_ice_loss = read.table("data/antarctica_mass_200204_202008.txt", skip=31, sep
 grn_ice_loss = read.table("data/greenland_mass_200204_202008.txt", skip=31, sep="", header = FALSE, col.names = c("decimal_date", "mass_Gt", "sigma_Gt")) # Greenland ice mass loss
 ```
 
-Explore the data. See how it appears in the Environment pane (upper right corner of RStudio)? You can click on it here, or use the View() function to open it up in a spreadsheet inside RStudio. Be careful you don't make changes to the spreadsheet because it will change the data.
+Explore the data. See how it appears in the Environment pane (upper right corner of RStudio)? You can click on it here, or use the `View()` function to open it up in a spreadsheet inside RStudio. Be careful you don't make changes to the spreadsheet in the View tab because it will change the data.
 
 ```{r}
 # View(grn_ice_loss)
@@ -58,10 +62,10 @@ Plot the data using a formula `y ~ x`
 # Plot Antarctic ice mass loss
 plot(mass_Gt ~ decimal_date, data=ant_ice_loss, ylab="Antarctica Mass Loss (Gt)")
 # Plot Greenland ice mass loss
-plot(mass_Gt ~ decimal_date, data=ant_ice_loss, ylab="Antarctica Mass Loss (Gt)")
+plot(mass_Gt ~ decimal_date, data=grn_ice_loss, ylab="Greenland Mass Loss (Gt)")
 
 # Plot both together as lines
-plot(mass_Gt ~ decimal_date, data=ant_ice_loss, ylab="Antarctica Mass Loss (Gt)", type='l') +
+plot(mass_Gt ~ decimal_date, data=ant_ice_loss, ylab="Ice Sheet Mass Loss (Gt)", type='l') +
 lines(mass_Gt ~ decimal_date, data=grn_ice_loss,type='l', col='red') 
 ```
 
@@ -74,7 +78,7 @@ plot(mass_Gt ~ decimal_date, data=ant_ice_loss, ylab="Antarctica Mass Loss (Gt)"
 lines(mass_Gt ~ decimal_date, data=grn_ice_loss, type='l', col='red') 
 ```
 
-We know that there was a gap between NASA Grace satellite missions from 2017-06-10 to 2018-06-14. Rather than have our plot function draw a line straight across the gap, we can break up the line into segments. I'm going to force R's plot() functions to note the gap in the data by inserting an NA into the data.frame at the start of 2018. Then let's add in grey shaded polygons behind it to show the uncertainty
+From the website and from our scatter plot, we know that there was a gap between NASA Grace satellite missions from 2017-06-10 to 2018-06-14. Rather than have our plot function draw a line straight across the gap (which looks like we collected data when we didn't), we can break up the line into segments. I'm going to force R's plot() functions to note the gap in the data by inserting an `NA` into the data.frame at the start of 2018. Then let's add in grey shaded polygons behind it to show the uncertainty
 
 ```{r}
 #Create data.frame with an NA between the GRACE missions. Column names must match so it will merge with ant and grn data

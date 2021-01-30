@@ -38,12 +38,12 @@ Skills: read data, line plot, bar plot, saving plots, merging, confidence interv
 
 ***
 
-#### Lesson 5: For loops
+#### Lesson 4: Examining global atmospheric CO2 trends
+Skills: Reading .txt files, plotting, saving figures, conditional statements, subsetting
 
 ***
 
-#### Lesson 4: Examining global atmospheric CO2 trends
-Skills: Reading .txt files, plotting, saving figures, conditional statements, subsetting
+#### Lesson 5: For loops
 
 ***
 
