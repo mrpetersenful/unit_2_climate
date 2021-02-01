@@ -8,7 +8,7 @@ knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618, collapse=TRUE)
 
 ### Unit 2: Climate
 #### Lesson 1: Melting Ice Sheets
-#### Skills: read data, line plot, bar plot, saving plots, merging, confidence intervals, indexing, arithmetic
+#### Skills: read data, line plot, bar plot, saving plots, confidence intervals, indexing, arithmetic
 
 ***
 
@@ -39,7 +39,7 @@ Go to the website and register yourself as a NASA Earthdata user. From there you
 
 #### Read in and explore data
 
-Use `read.table()` to read in the `.txt` data
+Use `read.table()` to read in the `.txt` data. There are 3 columns, the decimal date, the mass loss (in Gigatonnes) and one sigma (i.e. one standard deviation in Gigatonnes). We use the default separator `sep=""` which distinguishes column data by looking for white space. We skip the first 31 lines of the `.txt` file because that's all header (metadata). We manually code the column names after reading the header.
 
 ```{r}
 ant_ice_loss = read.table("data/antarctica_mass_200204_202008.txt", skip=31, sep="", header = FALSE, col.names = c("decimal_date", "mass_Gt", "sigma_Gt")) # Antarctica ice mass loss
@@ -66,7 +66,7 @@ plot(mass_Gt ~ decimal_date, data=grn_ice_loss, ylab="Greenland Mass Loss (Gt)")
 
 # Plot both together as lines
 plot(mass_Gt ~ decimal_date, data=ant_ice_loss, ylab="Ice Sheet Mass Loss (Gt)", type='l') +
-lines(mass_Gt ~ decimal_date, data=grn_ice_loss,type='l', col='red') 
+lines(mass_Gt ~ decimal_date, data=grn_ice_loss, col='red') 
 ```
 
 Note how we can use the `+` to link multiple plots together to print to the same window.
@@ -121,10 +121,10 @@ Now we can combine our Antarctic and Greenland time series plots into the same p
 
 ```{r}
 pdf('figures/ice_mass_trends.pdf', width=7, height=5)
-plot(mass_Gt ~ decimal_date, data=ant_ice_loss_with_NA, ylab="Antarctica Mass Loss (Gt)", xlab="Year", type='l', ylim=range(grn_ice_loss_with_NA$mass_Gt, na.rm=TRUE)) +
+plot(mass_Gt ~ decimal_date, data=ant_ice_loss_with_NA, ylab="Antarctica Mass Loss (Gt)", xlab="Year", type='l', ylim=range(grn_ice_loss_with_NA$mass_Gt, na.rm=TRUE), lwd=2) +
 lines((mass_Gt+2*sigma_Gt) ~ decimal_date, data=ant_ice_loss_with_NA, type='l', lty='dashed') +
 lines((mass_Gt-2*sigma_Gt) ~ decimal_date, data=ant_ice_loss_with_NA, type='l', lty='dashed') +
-lines(mass_Gt ~ decimal_date, data=grn_ice_loss_with_NA, type='l', col='red') +
+lines(mass_Gt ~ decimal_date, data=grn_ice_loss_with_NA, type='l', col='red', lwd=2) +
 lines((mass_Gt+2*sigma_Gt) ~ decimal_date, data=grn_ice_loss_with_NA, type='l', lty='dashed', col="red") +
 lines((mass_Gt-2*sigma_Gt) ~ decimal_date, data=grn_ice_loss_with_NA, type='l', lty='dashed', col="red") 
 dev.off()
@@ -133,6 +133,13 @@ dev.off()
 Let's make a bar plot showing the difference in ice mass loss for Antarctica and Greenland:
 
 ```{r}
+# Largest observed decrease in ice mass loss in Antarctica:
+min(ant_ice_loss$mass_Gt)
+
+# Barplot of largest observed ice loss in Antarctica and Greenland
+barplot(height=c(min(ant_ice_loss$mass_Gt), min(grn_ice_loss$mass_Gt)))
+
+# Flip to negative to positive, add x-axis labels, add more tick marks on y-axis, add y-axis title
 barplot(height=c(min(ant_ice_loss$mass_Gt)*(-1), min(grn_ice_loss$mass_Gt)*(-1)), names.arg=c("Antarctica","Greenland"), ylim=c(0,5000), ylab="Ice loss in Gt")
 ```
 
