@@ -47,6 +47,9 @@ delta_ice_ant = ant_ice_loss$mass_Gt[n_rows_ant] - ant_ice_loss$mass_Gt[1]
 delta_date_ant = ant_ice_loss$decimal_date[n_rows_ant] - ant_ice_loss$decimal_date[1]
 ant_loss_rate_Gt_per_yr = -1 * delta_ice_ant / delta_date_ant
 
+# Another option:
+# ant_loss_rate_Gt_per_yr = (max(ant_ice_loss$mass_Gt)-min(ant_ice_loss$mass_Gt)) / (max(ant_ice_loss$decimal_date)-min(ant_ice_loss$decimal_date))
+
 # Calculate ice loss rate (Gt / year) for Greenland:
 n_rows_grn = dim(grn_ice_loss)[1]
 delta_ice_grn = grn_ice_loss$mass_Gt[n_rows_grn] - grn_ice_loss$mass_Gt[1]
