@@ -63,5 +63,88 @@ summary(grn_ice_loss)
 
 plot(mass_Gt ~ decimal_date, data = ant_ice_loss)
 
+## So this looks like a pretty good plot. The points are big and the y- and 
+## x-axes aren't named correctly.
 
+## If you hit the Zoom button on the Plots screen, the plot will pop out. 
 
+## Now I want to give it a title. 
+
+plot(mass_Gt ~ decimal_date, data = ant_ice_loss, main="Antarctic ice loss", 
+     ylab = "Mass loss (Gt)")
+
+## Now I'm going to do this for the Greenland data.
+
+plot(mass_Gt ~ decimal_date, data = grn_ice_loss, main="Greenland ice loss", 
+     ylab = "Mass loss (Gt)")
+
+## There is also a gap in the data from 2017 and 2018 when the mission 
+## wasn't going. 
+
+## Now I want to see both of these on the same plot. 
+
+## If I use the plot() function, it just creates a new plot. I can then add
+## points in with following commands, such as points() or line()
+
+plot(mass_Gt ~ decimal_date, data = ant_ice_loss, 
+     ylab = "Mass loss (Gt)")
+points(mass_Gt ~ decimal_date, data = grn_ice_loss, 
+       ylab = "Mass loss (Gt)")
+
+## I deleted the title from the above, because it wasn't super necessary
+## anymore. I'm going to do this again, but now make Greenland data red. 
+
+plot(mass_Gt ~ decimal_date, data = ant_ice_loss, 
+     ylab = "Mass loss (Gt)")
+points(mass_Gt ~ decimal_date, data = grn_ice_loss, 
+       ylab = "Mass loss (Gt)", col="red")
+
+## Okay, but now my Greenland data is off the y-axis, so I'm going to 
+## change the y-axis boundary. But I need to know the range of the mass 
+## in Gt. I can check that with the range function. I want to just put 
+## that limit right into the code for the PLOT, not the code for the 
+## points. 
+range(grn_ice_loss$mass_Gt)
+
+plot(mass_Gt ~ decimal_date, data = ant_ice_loss, 
+     ylab = "Mass loss (Gt)", ylim=range(grn_ice_loss$mass_Gt))
+points(mass_Gt ~ decimal_date, data = grn_ice_loss, 
+       ylab = "Mass loss (Gt)", col="red")
+
+## I also want to have a line graph. So I'm going to specify line type
+## in the plot() function with type="l", and I'm going to use lines() as 
+## the specifier for the second type of data to throw in. 
+
+plot(mass_Gt ~ decimal_date, data = ant_ice_loss, 
+     ylab = "Mass loss (Gt)", ylim=range(grn_ice_loss$mass_Gt), type = "l")
+lines(mass_Gt ~ decimal_date, data = grn_ice_loss, 
+       ylab = "Mass loss (Gt)", col="red")
+
+## However, there's a gap in the GRACE mission in 2017-2018. So we want to 
+## insert an "NA" in 2017-2018, so that there's no data there, and it 
+## doesn't plot in the line. 
+
+## Insert break in the data 2017-2018.
+
+head(ant_ice_loss)
+## This is to remind myself of what the data table looks like. 
+tail(ant_ice_loss)
+## This also shows me the last 6 points of the data.
+
+## Okay, so I'm going to create a new data frame that fits into our 
+## ant_ice_loss and grn_ice_loss data frames with our NA data in it. 
+
+data_break = data.frame(decimal_date = 2018, mass_Gt=NA, sigma_Gt=NA)
+data_break
+
+## So in those lines of code, which I named data_break, I had to make
+## sure that the lines of code matched up to the original data sets. 
+## Then I checked that data frame. Now I want to append this data frame
+## to the end of the ant_ice_loss data. 
+
+ant_ice_loss_with_NA = rbind(ant_ice_loss, data_break)
+tail(ant_ice_loss_with_NA)
+
+## Now, I've renamed our data set ant_ice_loss to be very specific, so 
+## that it has the data break in it, then I checked the tail of the 
+## data. The tail now has the 2018 point in it. 
