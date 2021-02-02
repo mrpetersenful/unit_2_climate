@@ -145,6 +145,75 @@ data_break
 ant_ice_loss_with_NA = rbind(ant_ice_loss, data_break)
 tail(ant_ice_loss_with_NA)
 
+## When you rbind() two data sets, make sure that the names of the columns
+## of both data sets are exactly the same. 
+
 ## Now, I've renamed our data set ant_ice_loss to be very specific, so 
 ## that it has the data break in it, then I checked the tail of the 
 ## data. The tail now has the 2018 point in it. 
+
+## Now I want to sort the data so that the dates are in the correct 
+## order, otherwise the line would go in a really weird direction, 
+## back to 2018 after the 2020 data. 
+
+## Sorting the data with NA
+order(ant_ice_loss_with_NA$decimal_date)
+## So this gave us back the index and the order of the data that we're 
+## sorting. We can see that the 189th term here is now between the 163rd
+## and 164th terms. 
+
+## Now I want to take the new ordered set and put it inside the OG 
+## data set ant_ice_loss_with_NA. So I'm going to rename this variable, 
+## but ordered now, with the following function. Notice that I'm reordering
+## with the bracket function, which means I am accessing the elements that 
+## are specified. In this case, I want to reorder this data set with the
+## order function of a single column (which is decimal date). So the 
+## first space in the order() function is by rows, and I want to reorder 
+## the rows so that the decimal date is in order, with all columns, so I 
+## leave the second command blank, by using a single comma then blank space, 
+## then closing the bracket. 
+
+ant_ice_loss_with_NA = ant_ice_loss_with_NA[order(ant_ice_loss_with_NA
+                                                  $decimal_date), ]
+## Now I want to look at the tail again to make sure that the 2018 data 
+## isn't at the end. So I can look at the Environment tab and that data 
+## frame to see if it's right. 
+
+tail(ant_ice_loss_with_NA)
+
+
+## Now I want to do the same thing with the Greenland data. 
+
+grn_ice_loss_with_NA = rbind(grn_ice_loss, data_break)
+tail(grn_ice_loss_with_NA)
+
+## Once again, the 2018 data point is at the end of the function, so I'm going
+## to reorder and rename it again. 
+
+grn_ice_loss_with_NA = grn_ice_loss_with_NA[order(grn_ice_loss_with_NA
+                                                  $decimal_date), ]
+tail(grn_ice_loss_with_NA)
+
+## Cool. I checked that the 2018 data is in the right place with the 
+## Environmental tab and the tail() function. We lookin good, folx!
+
+
+## Now I'm going to replot my data using copy-paste for the plot lines, 
+## and I'm going to make sure I now have the data frames _with_NA instead
+## of the original data frames. 
+
+plot(mass_Gt ~ decimal_date, data = ant_ice_loss_with_NA, 
+     ylab = "Mass loss (Gt)", ylim=range(grn_ice_loss_with_NA$mass_Gt), 
+     type = "l")
+lines(mass_Gt ~ decimal_date, data = grn_ice_loss_with_NA, 
+      ylab = "Mass loss (Gt)", col="red")
+
+## Okay, so when I try to put the ylim on the grn_ice_loss_with_NA, there 
+## technically is no range there because NA is not part of the range, so
+## I have to keep the OG grn_ice_loss range in there, or it won't plot. 
+
+plot(mass_Gt ~ decimal_date, data = ant_ice_loss_with_NA, 
+     ylab = "Mass loss (Gt)", ylim=range(grn_ice_loss$mass_Gt), 
+     type = "l")
+lines(mass_Gt ~ decimal_date, data = grn_ice_loss_with_NA, 
+      ylab = "Mass loss (Gt)", col="red")
