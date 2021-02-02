@@ -283,3 +283,7 @@ dev.off()
 
 ## I also added my initials so that I can use this as my own plotting 
 ## work. Woohooooooooooo. It should now be in that file tho. And it is. 
+
+
+## Stopping work at 48:30 on the BB lecture. 
+
