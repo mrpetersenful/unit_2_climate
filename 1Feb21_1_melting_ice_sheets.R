@@ -217,3 +217,69 @@ plot(mass_Gt ~ decimal_date, data = ant_ice_loss_with_NA,
      type = "l")
 lines(mass_Gt ~ decimal_date, data = grn_ice_loss_with_NA, 
       ylab = "Mass loss (Gt)", col="red")
+
+## Now I want to plot with the uncertainties. 
+
+plot(mass_Gt ~ decimal_date, data = ant_ice_loss_with_NA, 
+     ylab = "Mass loss (Gt)", ylim=range(grn_ice_loss$mass_Gt), 
+     type = "l")
+## Adding uncertainty to Antarctica, and making that a dashed line instead
+## of a solid. To plot uncertainties, I'm making these lines from this plot,
+## but changing the line plot y-variable to the (mass_Gt + sigma_Gt column). 
+## I am also adding lty = "dashed" to the list of specifications to make it 
+## a dashed line. I'm also plotting two std devs, so I'm going to add in 
+## that extra factor in my line of code. 
+lines((mass_Gt + 2*sigma_Gt) ~ decimal_date, data = ant_ice_loss_with_NA, 
+      ylab = "Mass loss (Gt)", lty="dashed")
+## So by running this plot() and lines() code, I just get the uncertainty
+## above the line. So I need to add the lower uncertainty too. I'm going to 
+## copy-paste that line of code with a minus sign to get the lower bound. 
+lines((mass_Gt - 2*sigma_Gt) ~ decimal_date, data = ant_ice_loss_with_NA, 
+      ylab = "Mass loss (Gt)", lty="dashed")
+
+## Okay, so I'm going to do Greenland now. 
+
+lines(mass_Gt ~ decimal_date, data = grn_ice_loss_with_NA, 
+     ylab = "Mass loss (Gt)", col="red")
+lines((mass_Gt + 2*sigma_Gt) ~ decimal_date, data = grn_ice_loss_with_NA, 
+      ylab = "Mass loss (Gt)", lty="dashed", col="red")
+lines((mass_Gt - 2*sigma_Gt) ~ decimal_date, data = grn_ice_loss_with_NA, 
+      ylab = "Mass loss (Gt)", lty="dashed", col="red")
+
+## Sweet, we totes nailed it here. Now I'm going to save it. 
+## I want to save it just in case I want it for another table. 
+## I'm going to save it by opening up a plot space, and saving the lines
+## around it. 
+
+## Save the plot to .PDF to the figures folder that is already there
+## in the repository that I downloaded for this R project. So I tell it 
+## which form to save to: pdf(), and then in the parentheses, I tell it 
+## where to save, which is in that figures folder. Then I name it. The
+## width I am specifying as 7 inches (which is the default), and the 
+## height will be 5 inches. 
+
+## I have to tell R where to start saving for the PDF file, and tell it 
+## where to turn off. So I use the pdf() function to turn on, and dev.off()
+## to turn off. 
+
+pdf('figures/ice_mass_trends_MRP.pdf', width=7, height=5)
+
+plot(mass_Gt ~ decimal_date, data = ant_ice_loss_with_NA, 
+     ylab = "Mass loss (Gt)", ylim=range(grn_ice_loss$mass_Gt), 
+     type = "l")
+lines((mass_Gt + 2*sigma_Gt) ~ decimal_date, data = ant_ice_loss_with_NA, 
+      ylab = "Mass loss (Gt)", lty="dashed")
+lines((mass_Gt - 2*sigma_Gt) ~ decimal_date, data = ant_ice_loss_with_NA, 
+      ylab = "Mass loss (Gt)", lty="dashed")
+
+lines(mass_Gt ~ decimal_date, data = grn_ice_loss_with_NA, 
+      ylab = "Mass loss (Gt)", col="red")
+lines((mass_Gt + 2*sigma_Gt) ~ decimal_date, data = grn_ice_loss_with_NA, 
+      ylab = "Mass loss (Gt)", lty="dashed", col="red")
+lines((mass_Gt - 2*sigma_Gt) ~ decimal_date, data = grn_ice_loss_with_NA, 
+      ylab = "Mass loss (Gt)", lty="dashed", col="red")
+
+dev.off()
+
+## I also added my initials so that I can use this as my own plotting 
+## work. Woohooooooooooo. It should now be in that file tho. And it is. 
