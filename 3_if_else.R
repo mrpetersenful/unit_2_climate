@@ -1,3 +1,11 @@
+## Date?
+## Lesson 2.3: Conditional Statements.
+
+
+## NOTE: Make sure to rename this file when you've started it!
+
+
+
 ## ----setup, include=FALSE--------------------------------------------
 knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618, collapse=TRUE) 
 
