@@ -1,4 +1,4 @@
-## Date?
+## 3Feb2021
 ## Lesson 2.3: Conditional Statements.
 
 
@@ -10,15 +10,18 @@
 knitr::opts_chunk$set(fig.width=6, fig.asp = 0.618, collapse=TRUE) 
 
 
-## --------------------------------------------------------------------
+
 num = -2
 if (num < 0) {
   num = num * -1
 }
 num
+## You can have as many "then" statements inside the squiggly brackets
+## as you want, including popping a message up (you would use print()).
 
 
-## --------------------------------------------------------------------
+
+
 num = 4
 if (num < 0) {
   num = num * -1
@@ -36,8 +39,18 @@ if (num < 0) {
 }
 num
 
+## Exercise 3.1:
+temp = 97
+if(temp > 98.6) {
+  diff = temp - 98.6
+  print(diff)
+  if(temp > 101){
+    print("Warning! Too Hot.")
+  }
+}
 
-## --------------------------------------------------------------------
+
+## Now we're going to do something more fun. 
 grade = 83
 
 if(grade > 60){
@@ -45,6 +58,38 @@ if(grade > 60){
 }else{
   print("You failed...")
 }
+
+## Now I want to compare a couple of scores. 
+score_1 = 35
+score_2 = 41
+if (score_1 > score_2){
+  print("1 wins!")
+} else {
+  print("2 wins!")
+}
+
+
+## But what if there's a tie??
+score_1 = 35
+score_2 = 41
+if (score_1 > score_2){
+  print("1 wins!")
+} else if (score_2 > score_1) {
+  print("2 wins!")
+} else {
+  print("they tied")
+}
+
+score_1 = 35
+score_2 = 35
+if (score_1 > score_2){
+  print("1 wins!")
+} else if (score_2 > score_1) {
+  print("2 wins!")
+} else {
+  print("they tied")
+}
+
 
 
 ## --------------------------------------------------------------------
@@ -59,8 +104,11 @@ if (a > b) {
 }
 
 
-## --------------------------------------------------------------------
-a = 0
+## We can also make this process simpler, with less coding commands.
+## If first condition is true, do this, if false do this. Or, 
+## ifelse(condition, if true do this, if false do this).
+
+a = -1
 ifelse(a > 0, 1/a, NA)
 
 
