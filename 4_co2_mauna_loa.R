@@ -3,7 +3,9 @@
 
 
 
-# co2 = read.table("data/co2_mm_mlo.txt", col.names = c("year", "month", "decimal_date", "monthly_average", "deseasonalized", "n_days", "st_dev_days", "monthly_mean_uncertainty"))
+# co2 = read.table("data/co2_mm_mlo.txt", col.names = c("year", "month", 
+##      "decimal_date", "monthly_average", "deseasonalized", "n_days", 
+##      "st_dev_days", "monthly_mean_uncertainty"))
 
 url = 'ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt'
 co2 = read.table(url, col.names = c("year", "month", "decimal_date",
@@ -11,6 +13,11 @@ co2 = read.table(url, col.names = c("year", "month", "decimal_date",
                                     "n_days", "st_dev_days",
                                     "monthly_mean_uncertainty"))
 head(co2)
+
+## So we got this information from Scripps, and the last three columns are kind 
+## of junk data. Taken from over Mauna Loa because there are no anthropogenic 
+## changes out in the middle of the Pacific Ocean. 
+
 
 
 ## --------------------------------------------------------------------
