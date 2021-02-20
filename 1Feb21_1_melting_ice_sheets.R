@@ -315,3 +315,30 @@ barplot(height=c(min(ant_ice_loss$mass_Gt)*(-1), min(grn_ice_loss$mass_Gt)*(-1))
 ## ice lost from the beginning to the end of the time series by the total time that
 ## passed. Then display ice loss rates in bar graph. Save into figures/ 
 ## directory in this repo. 
+
+## First I want to calculate the ice loss rate (Gt/year) for Antarctica. But I want 
+## tofind the last row in the dataset.
+
+dim(ant_ice_loss)
+## This command gave me the dimensions. 188 rows, 3 columns. 
+
+dim(ant_ice_loss)[1]
+## This command gave me the number of rows. 
+dim(ant_ice_loss)[2]
+## This command gave me the number of columns. 
+
+## Now I want to find the last row in the dataset and name it. 
+n_rows_ant = dim(ant_ice_loss)[1]
+## That just named the last row as n_rows_ant.
+## Now I'm going to find the change in the mass, then the change in years.
+delta_ice_ant = ant_ice_loss$mass_Gt[n_rows_ant] - ant_ice_loss$mass_Gt[1]
+delta_date_ant = ant_ice_loss$decimal_date[n_rows_ant] - ant_ice_loss$decimal_date[1]
+
+## Now I can calculate the rate by dividing loss of mass by change in years (multiply
+## by -1 because we want it to be a positive lookin thing).
+
+ant_loss_rate_Gt_per_yr = -1 * delta_ice_ant/delta_date_ant
+print(ant_loss_rate_Gt_per_yr)
+
+## Now do it with Greenland data.
+
