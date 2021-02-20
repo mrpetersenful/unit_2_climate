@@ -288,3 +288,30 @@ dev.off()
 ## Stopping work at 48:30 on the BB lecture. Note to self: Check out 
 ## what the hell the $ command is. 
 
+## No longer have access to recordings. Hopefully that will be fixed. 
+
+## Now I'm going to make a bar plot showing the ice loss diff btwn Greenland
+## and Antarctica. 
+
+## Largest observed decrease in ice mass loss in Antarctica-- this is how we
+## find the minimum (or the max of lost ice)
+
+min(ant_ice_loss$mass_Gt)
+
+## Let's make a barplot now. 
+
+barplot(height=c(min(ant_ice_loss$mass_Gt), min(grn_ice_loss$mass_Gt)))
+
+## Okay, that's nice, but I want to flip it to positive, add x-axis labels, and 
+## make the y-axis make sense (along with title).
+
+barplot(height=c(min(ant_ice_loss$mass_Gt)*(-1), min(grn_ice_loss$mass_Gt)*(-1)), 
+        names.arg=c("Antarctica", "Greenland"), ylim=c(0,5000), ylab="Ice loss in Gt")
+        
+## Beautiful. 
+
+## Exercise 1.2. 
+## Calculate average annual ice loss for each ice sheet by dividing the change in
+## ice lost from the beginning to the end of the time series by the total time that
+## passed. Then display ice loss rates in bar graph. Save into figures/ 
+## directory in this repo. 
