@@ -135,7 +135,10 @@ if (score_1 > score_2){
 }
 
 
-## But what if there's a tie??
+## But what if there's a tie?? We can string together a series
+## of more than two mutually exclusive events by telling R what
+## to do if the first and second conditions are FALSE, such as
+## in the case of a tie. 
 score_1 = 35
 score_2 = 41
 if (score_1 > score_2){
@@ -168,21 +171,66 @@ if (a > b) {
   print("Tie.")
 }
 
+## Exercise 3.2: 
+## I have a variable n_donuts, which is how many donuts Pops bought on 
+## Sunday. Write an if/else chain to print out a statement that states 
+## whether Dad bought less than a dozen, a dozen (12), a baker's dozen
+## (13), or more than a baker's dozen.
+n_donuts = 15
+if(n_donuts < 12){
+  print("Dad bought less than 12 donuts! WTF")
+} else if (n_donuts == 12){
+  print("Dad bought 12 donuts, I guess.")
+} else if (n_donuts == 13){
+  print("Dad bought a baker's dozen, yee!")
+} else {
+  print("Dad bought a buttload of donuts, yee!")
+}
+
 
 ## We can also make this process simpler, with less coding commands.
 ## If first condition is true, do this, if false do this. Or, 
-## ifelse(condition, if true do this, if false do this).
+## ifelse(condition, if true do this, if false do this). In other words,
+## ifelse(logical, true, false).
 
 a = -1
 ifelse(a > 0, 1/a, NA)
+## Because the logical a > 0 is false, it returns NA, the third argument.
 
 
-## --------------------------------------------------------------------
+## This argument is nice because it works on vectors. In this case, I'm 
+## going to name two vectors. The first is my dataset. The second, I'm 
+## going to name result. I'm then going to bind them together so that I 
+## can nicely read the results using the command cbind().
+
 a = c(0, 1, 2, -4, 5)
 result = ifelse(a > 0, 1/a, NA)
 cbind(a,result)
+## This returns my output as a matrix with a in the first column and result
+## in the second column. That's one neat trick.
 
 
-## --------------------------------------------------------------------
+## Exercise 3.3:
+## In a dataset that I'm using, the number -999 is used to indicate a missing
+## value (which is really common). I want to use R's handling of missing values 
+## (in math equations, plotting, etc.) to replace those elements with NA. Use 
+## the ifelse() statement to replace all of the -999 values in the data vector
+## with NA. Then use an if/else chain to print out a statement about whether 
+## there are any NAs in the data variable. Might have to use functions like 
+## any() and is.na().
 data = c(1,3,5,-999,2,-999,8)
+
+## First, I want to rename my dataset that includes NAs. The first condition is 
+## my logical condition, "If the number is -999, then make it NA; if not, then 
+## leave it as the element in data".
+data_with_nas = ifelse(data == -999, NA, data)
+data_with_nas
+## Now I want to make an if/else statement.
+if(any(is.na(data_with_nas))){
+  print("There are NAs in this data!")
+}else{
+  print("There are no NAs in this data.")
+}
+
+
 
