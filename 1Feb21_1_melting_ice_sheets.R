@@ -342,3 +342,29 @@ print(ant_loss_rate_Gt_per_yr)
 
 ## Now do it with Greenland data.
 
+dim(grn_ice_loss)[1]
+n_rows_grn = dim(grn_ice_loss)[1]
+
+delta_ice_grn = grn_ice_loss$mass_Gt[n_rows_grn] - grn_ice_loss$mass_Gt[1]
+delta_date_grn = grn_ice_loss$decimal_date[n_rows_grn] - grn_ice_loss$decimal_date[1]
+
+grn_loss_rate_Gt_per_yr = -1 * delta_ice_grn / delta_date_grn
+print(grn_loss_rate_Gt_per_yr)
+
+## Now make a bar plot out of it.
+barplot(height=c(ant_loss_rate_Gt_per_yr, grn_loss_rate_Gt_per_yr), names.arg=c(
+  "Antarctica", "Greenland"), ylab="Ice loss rate (Gt/year)")
+
+## Now I want to save the bar plot as a pdf into the /figures directory. 
+
+pdf('figures/ice_loss_rate.pdf', width=5, height=5)
+barplot(height=c(ant_loss_rate_Gt_per_yr, grn_loss_rate_Gt_per_yr), names.arg=c(
+  "Antarctica", "Greenland"), ylab="Ice loss rate (Gt/year)")
+dev.off()
+
+
+## Done with melting ice sheets. Well, except for in real life. 
+
+
+
+
