@@ -143,7 +143,7 @@ abs(0.3 - (0.1 + 0.2)) < error_threshold
 ## tests into a single TRUE or FALSE.
 
 ## List of Boolean operators: 
-##   %       cond1 & cond2       Are both cond1 and cond2 true?
+##   &       cond1 & cond2       Are both cond1 and cond2 true?
 ##   |       cond1 | cond2       Is one or more of cond1 and cond2 true?
 ##   xor     xor(cond1, cond2)   Is exactly one of cond1 and cond2 true? 
 ##                    This is a mutually exclusive operator. 
@@ -154,52 +154,90 @@ abs(0.3 - (0.1 + 0.2)) < error_threshold
 
 
 
+## When using Boolean operators, we have to place it between two complete logical
+## tests. R will execute each logical test and then use the Boolean operator to 
+## combine the results into a single TRUE or FALSE. 
 
+## The most common mistake with Boolean operators is to forget to put a complete
+## test on either side. You will get errors. 
 
 ## Okay, now let's play with some conditions: 
 x = 10
 y = 5
 z = 2
 
+## Now I want to ask if x is less than y and if y is greater than z.
 x < y & y > z
+## I got a false message because x is not greater than y.
+
+## What about this: Is x less than y or y greater than z? (Only one condition
+## has to be met for this to be true).
 x < y | y > z
+## y is greater than z, and the one condition is met, so we got an output of TRUE
 
 
-
-
-
+## Now let's play with vector conditions.
 a = c(1, 2, 3)
 b = c(1, 2, 3)
 c = c(1, 2, 4)
+
+## Is the vector a equal to the vector b?
 a == b
+## Yep, the elements are equal to each other. They are paired and tested, so they
+## are TRUE TRUE TRUE and equal to each other. 
 
+## Is b equal to c?
 b == c
+## The first two elements are paired and are the same, so we get TRUE TRUE and FALSE
+## for the third element, because that pair is not equal. 
 
+## Now, is a equal to b and b equal to c?
 a == b & b == c
+## Both conditions are not met entirely, but we are still testing element-wise, so 
+## we get an output of TRUE TRUE FALSE. 
 
+
+## Now let's see if we can locate an ocean that has depth > 4000 m and an area less 
+## than 50x10^6 km^2.
 
 world_oceans$ocean[world_oceans$avg_depth_m > 4000
                    & world_oceans$area_km2 < 50e6]
+## We wrote this command by checking in our subset for the ocean name, then asking 
+## for the specific line with a set of logic questions. 
+## This command returned an output of the Southern Ocean. Cool cool cool.
 
-
+## Let's also test our any and all functions. 
 z = c(TRUE, TRUE, FALSE)
+
+## Are any of the conditions TRUE?
 any(z)
+## Yes, two of the conditions are, so we get TRUE as an output. 
 
+## Are all of the conditions TRUE?
 all(z)
+## Nope, one is FALSE, so the entire output returns FALSE.
 
-
-## NA does not play nicely with any of the logic questions. 
+## NA does not play nicely with any of the logic questions. We can't just test for
+## a value to be NA, so we have to define a function to define NA values, and that
+## function is is.na(NA).
 NA == NA
+## R is angry, and will not tell me that NA is NA. So let's redefine it so R knows 
+## that it is NA. 
 is.na(NA)
+## We get an output here of TRUE, because we are asking R if NA is NA here. 
 
+## This means that we can't just define a dataset and see if any of the elements are 
+## NA, because R doesn't like that question, see below.
 data = c(1, 2, 3, NA) == NA
-
-
-
+## R won't tell me if any of these values are NA, unless I ask its specific function
+## to check. So I'm going to name a vector with an element of NA, then check within
+## that vector.
 
 
 vec <- c(1, 2, 3, NA)
 is.na(vec)
+## This just gave me FALSE FALSE FALSE TRUE because R likes the function is.na() to
+## check for NA values. 
 
 
 
@@ -209,9 +247,30 @@ w = 15
 x = c(-1, 0, 1)
 y = "February"
 z = c("Monday", "Tuesday", "January")
-## Is w greater than 10 and less than 20?
-## Are any of the values in x positive? 
-## Are all of the values in x positive?
-## Is object y the word February?
-## How many values in z are days of the week?
 
+## Is w greater than 10 and less than 20?
+w > 10 & w < 20
+## Output is TRUE.
+
+## Are any of the values in x positive? 
+x > 0
+## This returned FALSE FALSE TRUE. But I also want to try to use the any condition.
+any(x > 0)
+## This returned TRUE, because at least one of the conditions is true. 
+
+## Are all of the values in x positive?
+all(x > 0)
+## No, not all of them are positive, so got a return of FALSE.
+
+## Is object y the word February?
+y == "February"
+## This returned a value of TRUE.
+
+## How many values in z are days of the week?
+z == c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+## This didn't work because z does not have the same number of things as what I 
+## asked for. Also, I want to use the sum() function because it's asking for how many.
+sum(z %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", 
+             "Sunday"))
+## This gives me an output of 2 because 2 of the elements in z are present in the list
+## that I asked about. 
