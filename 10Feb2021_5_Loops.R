@@ -138,7 +138,7 @@ for(i in c(1:2)){
 
 
 ## As a note, the function paste() joins several strings into one longer string. 
-## Programmers call this concatennation. 
+## Programmers call this concatenation. 
 ## Looking at the output of the paste function above, we can see that first the
 ## outer loop holds i at a value of 1 while the inner loop steps the iterand j 
 ## through values of 1, 2, and 3. Then the outer loop holds i at a value of 2 
@@ -205,3 +205,54 @@ n_fish
 total_catch_lb
 print(n_fish)
 print(total_catch_lb)
+
+
+## Exercise 5.2:
+## Use a while loop to build a simple number matching game. Pick a number between 1 and
+## 10 outside fo the loop. Then, inside the loop, step through 1 to 10 and test if that 
+## iteration of the loop has guessed the correct number. At the end, print out the number
+## of guesses it took for your loop to guess the right number. 
+
+lucky_number = 4
+guess_number = 1
+n_guesses = 0
+while(lucky_number != guess_number){
+  n_guesses = n_guesses + 1
+  guess_number = sample(1:10, 1, replace=F)
+}
+
+n_guesses
+
+## Okay, so this didn't work, because my sample(1:10) function -- which generates a random
+## number between 1 and 10, didn't guess 4 for a really long time, which is not what a 
+## human would do. If I want to use this random integer sampling function, then I would 
+## have to include the replace=F argument in my sample function. 
+
+## so without the replace function (which allows a number to be guessed again), the while 
+## loop took 15 tries, and when the replace function was on, it only took 4 guesses. 
+## Pretty cool. 
+
+## Here's another way to do it with if/else statements nested in the while loop. 
+pick = 4
+guess = 1
+answer = FALSE
+while(answer == FALSE){
+  if (pick == guess){
+    answer = TRUE
+  } else {
+    guess = guess+1
+  }
+}
+
+print(paste("My loop guessed your number after ",guess," guesses!"))
+
+
+
+## I like my way better. It's more like a human would think. This was more methodical.
+## So in this version, I change the value of the answer element if the guess is the same
+## as the pick. If it's not, I add 1 to the guess number. I then did a concatenation 
+## that gave me a pretty output: 
+## [1] "My loop guessed your number after  4  guesses!"
+
+
+
