@@ -111,20 +111,62 @@ tail(arctic_ice_annual)
 
 ## Yeah, my extent_annual_avg for 2021 is pretty big -- that's because we have more icy data
 ## in 2021 because we're only in February. I want to exclude those points. But I'm not really 
-## sure how. I should probably ask Erin how to not use that data point. Or look it up. 
+## sure how. Welp. Normally I would subset this and fix it, but I've got more lessons to get
+## through. 
 
-## I guess I'll have to do that in the morning. 
 
+## Now I want to graph the 5-year-average and annual extent on the same plot as the 
+## original observations. First, we'll have to change the Year variable into a date-type
+## variable that will plot well along the dates in the original observation dataset. 
 
-## --------------------------------------------------------------------------------------------------------------------------------------------------------------
-#To plot the annual and 5-year averages on the same plot as the original observations:
+## To plot the annual and 5-year averages on the same plot as the original observations, 
+## first, I'm adding the date column to the arctic_ice_annual dataset, but making each 
+## annual observation read as though it was collected on the first. This smooths things 
+## out pretty well. 
 arctic_ice_annual$date = as.Date(paste(arctic_ice_annual$Year, 1, 1, sep = "-"))
 plot(Extent ~ date, data=arctic_ice, ylab="Arctic sea ice extent (x10^6 km^2)", type='l') +
   lines(extent_annual_avg ~ date, data=arctic_ice_annual, col="red") +
   lines(extent_5yr_avg ~ date, data=arctic_ice_annual, col="blue")
 
+head(arctic_ice_annual)
 
-## --------------------------------------------------------------------------------------------------------------------------------------------------------------
-ice_loss_million_km2 = (arctic_ice_annual$extent_annual_avg[dim(arctic_ice_annual)[1]] - arctic_ice_annual$extent_annual_avg[1]) / (max(arctic_ice_annual$Year) - min(arctic_ice_annual$Year))
+
+## Now I want to calculate the observed rate of change in annually averaged ice extent across
+## the time period by subtracting the first average Arctic ice extent area from the most recent
+## average Arctic ice extent area, and dividing by the number of years of observation. 
+
+ice_loss_million_km2 = (arctic_ice_annual$extent_annual_avg[dim(arctic_ice_annual)[1]] - 
+                          arctic_ice_annual$extent_annual_avg[1]) / 
+          (max(arctic_ice_annual$Year) - min(arctic_ice_annual$Year))
 ice_loss_million_km2
+
+## I got a different answer than her because my 2021 data is very high. But I don't have the
+## energy to fix or subset that data right now, so fukkkkk it.
+
+## Exercise 6.1:
+## Use a for loop to calculate the total ice loss in each full decate of the data, starting 
+## with 1980-1989. Plot the ice loss per decade in a bar plot. 
+
+## Okay, so first I want to subset only the years that I need. 
+ice_decades = arctic_ice_annual[which(arctic_ice_annual$Year >= 1980 & arctic_ice_annual$Year < 2020),]
+summary(ice_decades)
+
+## Now I want to initialize my results data frame.
+n_decades = dim(ice_decades)[1]/10
+decadal_loss = data.frame(decade = seq(n_decades),
+                          decade_name = c("1980s", "1990s", "2000s", "2010s"),
+                          ice_loss_million_km2 = NA)
+
+## Now I'm going to set up my for loop. I'm going to step through my iterand (each decade) and
+## calculate the difference in ice extent between the first and last year.
+for (i in seq(n_decades)){
+  print(paste("index from ", (i-1)*10+1, " to ", (i-1)*10 + 10))
+  decadal_loss$ice_loss_million_km2[i] = ice_decades$extent_annual_avg[(i-1)*10+1] -
+    ice_decades$extent_annual_avg[(i-1)*10 +10]
+}
+
+## Now to plot. 
+barplot(height=decadal_loss$ice_loss_million_km2, names.arg=decadal_loss$decade_name,
+        ylab="Arctic ice loss (million km^2)")
+
 
